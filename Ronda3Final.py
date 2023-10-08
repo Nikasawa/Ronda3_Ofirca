@@ -88,15 +88,15 @@ def crearZonaDeTransporte():
 
     # ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
 
-    zonaDeTransporte = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [0, 1, 6, 0, 5, 0, 0, 0, 1],
-                        [0, 1, 3, 0, 4, 1, 0, 0, 1],
-                        [0, 1, 6, 0, 0, 4, 0, 0, 1],
-                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [0, 1, 1, 1, 1, 1, 1, 1, 1]]
+    zonaDeTransporte = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 6, 0, 5, 0, 0, 0, 1],
+                        [1, 1, 3, 0, 4, 1, 0, 0, 1],
+                        [1, 1, 6, 0, 0, 4, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
     
     zonaDeTransporte[posYjugador][posXjugador] = 3
     
@@ -211,9 +211,7 @@ class jugador(pygame.sprite.Sprite):
 
     def ArrastrarVertical(self, simbolo, opuesto, lista):
         
-        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
-
-            self.pasosRealizados += 1
+        if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
                 
             if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
 
@@ -229,9 +227,8 @@ class jugador(pygame.sprite.Sprite):
         
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
             
-        if lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
+        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-            self.pasosRealizados += 1
 
             if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
 
@@ -249,33 +246,28 @@ class jugador(pygame.sprite.Sprite):
 
     def SaltarVertical(self, simbolo, lista):
 
-        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
+        if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
-
-            self.pasosRealizados += 1
 
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '2')
 
-        elif lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
+        elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
-            self.pasosRealizados += 1
             
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')  
     
     def SaltarHorizontal(self, simbolo, lista):
 
-        if lista[self.y][eval(str(self.x) + simbolo + '1')] == 4 and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 2]:
+        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
 
-            self.pasosRealizados += 1
 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '2')
 
-        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 2]:
+        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-            self.pasosRealizados += 1
                 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '1')   
@@ -289,7 +281,7 @@ class jugador(pygame.sprite.Sprite):
             self.y = eval(str(self.y) + simbolo + '1')
             lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
             
-        elif lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
+        elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
 
             lista[self.y][self.x] = 0
@@ -300,12 +292,10 @@ class jugador(pygame.sprite.Sprite):
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
             
             lista[self.y][self.x] = 0
-            print(self.x)
             lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
-            print(self.x)
             self.x = eval(str(self.x) + simbolo + '1')
             
-        elif lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
+        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '1')
@@ -344,11 +334,11 @@ class jugador(pygame.sprite.Sprite):
                     case "UAIBOT":
                         self.EmpujarHorizontal('+', lista)
                     case "UAIBOTA":
-                        self.ArrastrarHoriEmpujarHorizontal('+', '-', lista)
+                        self.ArrastrarHorizontal('+', '-', lista)
                     case "UAIBOTINA":
-                        self.SaltarHoriEmpujarHorizontal('+', lista)
+                        self.SaltarHorizontal('+', lista)
                     case "UAIBOTINO":
-                        self.SaltarHoriEmpujarHorizontal('+', lista)
+                        self.SaltarHorizontal('+', lista)
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
@@ -365,6 +355,8 @@ class jugador(pygame.sprite.Sprite):
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
+        lista[4][2] = 6
+        lista[6][2] = 6
         lista[self.y][self.x] = 3
 
 
