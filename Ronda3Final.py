@@ -117,7 +117,17 @@ def crearZonaDeTransporte():
     zonaDeTransporte[4][5] = 'virus'    
     zonaDeTransporte[5][6] = 'virus'    
     zonaDeTransporte[5][5] = 'pared' 
-    zonaDeTransporte[6][3] = 'pared'       
+    zonaDeTransporte[6][3] = 'pared'
+
+    zonaDeTransporte = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [0, 1, 6, 0, 5, 0, 0, 0, 1],
+                        [0, 1, 3, 0, 2, 1, 0, 0, 1],
+                        [0, 1, 6, 0, 0, 2, 0, 0, 1],
+                        [0, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [0, 1, 1, 1, 1, 1, 1, 1, 1]]
 
     lstAreaProtegida.append((2,4))
     lstAreaProtegida.append((2,6))
@@ -234,21 +244,21 @@ class jugador(pygame.sprite.Sprite):
         
         self.cambioSala = False
 
-    def movVertical(self, signo, bool, block):
+    def movVertical(self, signo, bool, pared, virus):
 
         # signo: Direccion a la que se va a mover (logica para reducir codigo)
         # bool: Condicion al llegar al limite del mapa. Pregunta si hay una sala al costado para moverse a ella o chocar contra la pared
 
         global indexVertical, movAbajo, movArriba
 
-        for sprite in block:
-            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.top) + signo + str(64)), self.rect.width, self.rect.height):
-                if signo == '+':
-                    movAbajo = True
-                if signo == '-':
-                    movArriba = True
-        
-        self.rect.top = eval(str(self.rect.top) + signo + str(64))
+        moverse = True
+
+        for sprite in pared:
+            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(64)), self.rect.width, self.rect.height):
+                moverse = False
+
+        if moverse:
+            self.rect.y = eval(str(self.rect.top) + signo + str(64))
 
         if self.rect.top <= 0:
 
@@ -269,18 +279,20 @@ class jugador(pygame.sprite.Sprite):
                 self.rect.bottom = pantalla.get_height()
 
     # Movimiento del jugador, misma logica que en el juego de ofirca. Se usa un eval para tener la ecuacion: la posicion acutal, signo ingresado (que puede ser + o -), y los frames por segundo aumentados un poquito
-    def movHorizontal(self, signo, bool, block):
+    def movHorizontal(self, signo, bool, pared, virus):
             
-        self.rect.x = eval(str(self.rect.left) + signo + str(64))
+        
 
         global indexHorizontal, movIzquierda, movDerecha
 
-        for sprite in block:
-            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.top) + signo + str(64)), self.rect.width, self.rect.height):
-                if signo == '+':
-                    movDerecha = True
-                if signo == '-':
-                    movIzquierda = True
+        moverse = True
+
+        for sprite in pared:
+            if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
+                moverse = False
+
+        if moverse:
+            self.rect.x = eval(str(self.rect.left) + signo + str(64))
 
         # Esto es para probar el cambio de 'salas', ahora solo cambia de color la pantalla
 
@@ -306,19 +318,19 @@ class jugador(pygame.sprite.Sprite):
             else:
                 self.rect.left = 0
 
-    def mover(self, block, bool = []):
+    def mover(self, pared, virus, bool = []):
         
         if pygame.key.get_pressed()[pygame.K_w]:
-            self.movVertical('-', bool, block)
+            self.movVertical('-', bool, pared, virus)
 
         if pygame.key.get_pressed()[pygame.K_s]:
-            self.movVertical('+', bool, block)
+            self.movVertical('+', bool, pared, virus)
 
         if pygame.key.get_pressed()[pygame.K_d]:
-            self.movHorizontal('+', bool, block)
+            self.movHorizontal('+', bool, pared, virus)
 
         if pygame.key.get_pressed()[pygame.K_a]:
-            self.movHorizontal('-', bool, block)
+            self.movHorizontal('-', bool, pared, virus)
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
@@ -356,18 +368,39 @@ class virus(pygame.sprite.Sprite):
         if movIzquierda:
             self.rect.left + 64
 
-        pantalla.blit(imgVirus, (self.rect.left, self.rect.top)) 
+        pantalla.blit(imgVirus, (self.rect.left, self.rect.top))
+
+class pared(pygame.sprite.Sprite):
+
+    def __init__(self, posX, posY):
+
+        # Aca se heredan las propiedades
+        pygame.sprite.Sprite.__init__(self) 
+        self.posX = posX
+        self.posY = posY
+        self.surface = pygame.Surface((64, 64))
+        self.rect = self.surface.get_rect()
+        self.rect.x = self.posX
+        self.rect.y = self.posY
+
+    def update(self):
+
+        pantalla.blit(imgPared, (self.rect.left, self.rect.top)) 
 
 # Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
 # Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
-virusTotal = pygame.sprite.Group()
+virusGrupo = pygame.sprite.Group()
+paredGrupo = pygame.sprite.Group()
 
 for numY, y in enumerate(zonaDeTransporte):
     for numX, x in enumerate(y): 
-        if y[numX] == 'jugador':
+        if y[numX] == 3:
             personaje = jugador(numX * 64, numY * 64, 64, 64)
-        if y[numX] == 'virus':
-            virusTotal.add(virus(numX * 64, numY * 64))
+        if y[numX] == 2:
+            virusGrupo.add(virus(numX * 64, numY * 64))
+        if y[numX] == 1:
+            paredGrupo.add(pared(numX * 64, numY * 64))
+
 
 def dibujarReglas():
 
@@ -611,7 +644,7 @@ while not salirJuego:
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
 
-            personaje.mover(block = virusTotal)
+            personaje.mover(pared = paredGrupo, virus = virusGrupo)
 
             if event.key == pygame.K_r: 
                 resetearJuego()
@@ -639,8 +672,9 @@ while not salirJuego:
         dt = reloj.tick() / 1000
 
         personaje.dibujar()
-        virusTotal.update()
-        
+        virusGrupo.update()
+        paredGrupo.update()
+
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
 
