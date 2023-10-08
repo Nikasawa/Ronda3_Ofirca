@@ -242,7 +242,6 @@ class jugador(pygame.sprite.Sprite):
             else:
 
                 lista[self.y][self.x] = 0
-                juego.boolVirus = True
 
             self.x = eval(str(self.x) + simbolo + '1')
 
@@ -301,7 +300,9 @@ class jugador(pygame.sprite.Sprite):
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
             
             lista[self.y][self.x] = 0
+            print(self.x)
             lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
+            print(self.x)
             self.x = eval(str(self.x) + simbolo + '1')
             
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
@@ -315,18 +316,20 @@ class jugador(pygame.sprite.Sprite):
             
             match robot:
                     case "UAIBOT":
-                        self.EmpujarHorizontal('-', lista)
+                        self.EmpujarVertical('-', lista)
                     case "UAIBOTA":
-                        self.ArrastrarHorizontal('-', '+', lista)
+                        self.ArrastrarVertical('-', '+', lista)
                     case "UAIBOTINA":
-                        self.SaltarHorizontal('-', lista)
+                        self.SaltarVertical('-', lista)
                     case "UAIBOTINO":
-                        self.SaltarHorizontal('-', lista)
+                        self.SaltarVertical('-', lista)
                 
 
         if pygame.key.get_pressed()[pygame.K_s]:
+
             match personajeActual:
                     case "UAIBOT":
+
                         self.EmpujarVertical('+', lista)
                     case "UAIBOTA":
                         self.ArrastrarVertical('+', '-', lista)
@@ -339,13 +342,13 @@ class jugador(pygame.sprite.Sprite):
         if pygame.key.get_pressed()[pygame.K_d]:
              match personajeActual:
                     case "UAIBOT":
-                        self.EmpujarVertical('+', lista)
+                        self.EmpujarHorizontal('+', lista)
                     case "UAIBOTA":
-                        self.ArrastrarVertical('+', '-', lista)
+                        self.ArrastrarHoriEmpujarHorizontal('+', '-', lista)
                     case "UAIBOTINA":
-                        self.SaltarVertical('+', lista)
+                        self.SaltarHoriEmpujarHorizontal('+', lista)
                     case "UAIBOTINO":
-                        self.SaltarVertical('+', lista)
+                        self.SaltarHoriEmpujarHorizontal('+', lista)
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
@@ -611,18 +614,16 @@ def estaSolucionado():
 
     cantVirusSobreAreasProtegidas=0
 
-    for punto in lstAreaProtegida:
-        x=punto[0]
-        y=punto[1]
-        if zonaDeTransporte[x][y]=='virus':
+    nivelCompletado = True
+
+    for y in zonaDeTransporte:
+        if 6 in y:
             cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
 
-    if (cantVirusSobreAreasProtegidas==len(lstAreaProtegida)):
-        nivelCompletado=True
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
-        
+    if cantVirusSobreAreasProtegidas > 0:
+        nivelCompletado = False
     else:
-        nivelCompletado=False
+        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
 
     dibujarCartelIndicadorRonda()
     dibujarReglas()
@@ -888,8 +889,6 @@ while not salirJuego:
            if miraRect.colliderect(virusQueSeMueveRect):
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
-
-            
 
             #estaSolucionado()
             #estaSinMovimientos()
