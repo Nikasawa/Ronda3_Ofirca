@@ -177,80 +177,7 @@ class jugador(pygame.sprite.Sprite):
         self.y = 5
         
         self.cambioSala = False
-
-    def movVertical(self, signo, bool, pared, virus):
-
-        # signo: Direccion a la que se va a mover (logica para reducir codigo)
-        # bool: Condicion al llegar al limite del mapa. Pregunta si hay una sala al costado para moverse a ella o chocar contra la pared
-
-        global indexVertical, movAbajo, movArriba
-
-        moverse = True
-
-        for sprite in virus:
-            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(64)), self.rect.width, self.rect.height):
-                for sprite in pared:
-                    if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(128)), self.rect.width, self.rect.height):
-                        moverse = False
-                        break
-                if signo == '-': 
-                    movArriba = True
-                if signo == '+':
-                    movAbajo = True
-
-        for sprite in pared:
-            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(64)), self.rect.width, self.rect.height):
-                moverse = False
-
-        if moverse:
-            self.rect.y = eval(str(self.rect.top) + signo + str(64))
-
-        if self.rect.top <= 0:
-
-            if signo == '-' and 'arriba' in bool:
-                self.rect.bottom = pantalla.get_height()
-                self.cambioSala = True
-                indexVertical -= 1
-            else:
-                self.rect.top = 0
-
-        if self.rect.bottom >= pantalla.get_height():
-
-            if signo == '+' and 'abajo' in bool:
-                self.rect.top = 0
-                self.cambioSala = True
-                indexVertical += 1
-            else:
-                self.rect.bottom = pantalla.get_height()
-
-    # Movimiento del jugador, misma logica que en el juego de ofirca. Se usa un eval para tener la ecuacion: la posicion acutal, signo ingresado (que puede ser + o -), y los frames por segundo aumentados un poquito
-    def movHorizontal(self, signo, bool, pared, virus):
-            
-        
-
-        global indexHorizontal, movIzquierda, movDerecha
-
-        moverse = True
-
-        for sprite in virus:
-            if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
-                for pared in pared:
-                    if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
-                        moverse = False
-                        break
-                
-                if signo == '-': 
-                    movIzquierda = True
-                if signo == '+':
-                    movDerecha = True
-
-        for pared in pared:
-            if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
-                moverse = False
-
-        if moverse:
-            self.rect.x = eval(str(self.rect.left) + signo + str(64))
-
+        """
         # Esto es para probar el cambio de 'salas', ahora solo cambia de color la pantalla
 
         # si llega a uno de los dos extremos de la pantalla y tiene una habitacion al costado, pasa a esa sala (el mapa cambia de color y se posiciona al otro extremo de la pantalla), 
@@ -273,7 +200,85 @@ class jugador(pygame.sprite.Sprite):
                 self.cambioSala = True
                 indexHorizontal -= 1
             else:
-                self.rect.left = 0
+                self.rect.left = 0"""
+        
+     #------------>Personaje: 1. Arrastrar Bloques<-------------#
+    # Utilidad de las siguientes 4 funciones:  
+    # Revisa si en la direccion contraria a la que se va a mover (Ej: Si se mueve para arriba, mira la casilla de abajo), tiene un virus para mover
+    # Si es cierto, arrastra al virus hacia la posicion del jugador y se limpia (regresa a 0) la posicion del virus
+    # Si NO lo es, limpia solo la posicion que tenia el jugador antes de moverse
+
+    def ArrastrarVertical(self, simbolo, opuesto, lista):
+        
+        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
+
+            self.pasosRealizados += 1
+                
+            if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
+
+
+                lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
+                lista[self.y][self.x] = 4
+                
+            else:
+                
+                lista[self.y][self.x] = 0
+
+            self.y = eval(str(self.y) + simbolo + '1')
+        
+    def ArrastrarHorizontal(self, simbolo, opuesto, lista):
+            
+        if lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
+
+            self.pasosRealizados += 1
+
+            if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
+
+                    
+                lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
+                lista[self.y][self.x] = 4
+
+            else:
+
+                lista[self.y][self.x] = 0
+                juego.boolVirus = True
+
+            self.x = eval(str(self.x) + simbolo + '1')
+
+    #------------>Personaje: 2. Saltar Bloques<-------------#
+
+    def SaltarVertical(self, simbolo, lista):
+
+        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
+
+
+            self.pasosRealizados += 1
+
+            lista[self.y][self.x] = 0
+            self.y = eval(str(self.y) + simbolo + '2')
+
+        elif lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
+
+            self.pasosRealizados += 1
+            
+            lista[self.y][self.x] = 0
+            self.y = eval(str(self.y) + simbolo + '1')  
+    
+    def SaltarHorizontal(self, simbolo, lista):
+
+        if lista[self.y][eval(str(self.x) + simbolo + '1')] == 4 and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 2]:
+
+            self.pasosRealizados += 1
+
+            lista[self.y][self.x] = 0
+            self.x = eval(str(self.x) + simbolo + '2')
+
+        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 2]:
+
+            self.pasosRealizados += 1
+                
+            lista[self.y][self.x] = 0
+            self.x = eval(str(self.x) + simbolo + '1')   
                   
     def EmpujarVertical(self, simbolo, lista):
 
@@ -283,7 +288,7 @@ class jugador(pygame.sprite.Sprite):
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')
             lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
-
+            
         elif lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
 
 
@@ -294,30 +299,65 @@ class jugador(pygame.sprite.Sprite):
 
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
             
-
             lista[self.y][self.x] = 0
+            lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
             self.x = eval(str(self.x) + simbolo + '1')
-            lista[self.y][eval(str(self.x) + simbolo + '1')] = 4
             
-
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '1')
 
-    def mover(self, pared, virus, bool = [], lista = []):
+    def mover(self, pared, virus, robot, bool = [], lista = []):
         
         if pygame.key.get_pressed()[pygame.K_w]:
-            self.EmpujarVertical('-', lista)
+            
+            match robot:
+                    case "UAIBOT":
+                        self.EmpujarHorizontal('-', lista)
+                    case "UAIBOTA":
+                        self.ArrastrarHorizontal('-', '+', lista)
+                    case "UAIBOTINA":
+                        self.SaltarHorizontal('-', lista)
+                    case "UAIBOTINO":
+                        self.SaltarHorizontal('-', lista)
+                
 
         if pygame.key.get_pressed()[pygame.K_s]:
-            self.EmpujarVertical('+', lista)
+            match personajeActual:
+                    case "UAIBOT":
+                        self.EmpujarVertical('+', lista)
+                    case "UAIBOTA":
+                        self.ArrastrarVertical('+', '-', lista)
+                    case "UAIBOTINA":
+                        self.SaltarVertical('+', lista)
+                    case "UAIBOTINO":
+                        self.SaltarVertical('+', lista)
+            
 
         if pygame.key.get_pressed()[pygame.K_d]:
-            self.EmpujarHorizontal('+', lista)
+             match personajeActual:
+                    case "UAIBOT":
+                        self.EmpujarVertical('+', lista)
+                    case "UAIBOTA":
+                        self.ArrastrarVertical('+', '-', lista)
+                    case "UAIBOTINA":
+                        self.SaltarVertical('+', lista)
+                    case "UAIBOTINO":
+                        self.SaltarVertical('+', lista)
+
 
         if pygame.key.get_pressed()[pygame.K_a]:
-            self.EmpujarHorizontal('-', lista)
+            match personajeActual:
+                    case "UAIBOT":
+                        self.EmpujarHorizontal('-', lista)
+                    case "UAIBOTA":
+                        self.ArrastrarHorizontal('-', '+', lista)
+                    case "UAIBOTINA":
+                        self.SaltarHorizontal('-', lista)
+                    case "UAIBOTINO":
+                        self.SaltarHorizontal('-', lista)
+            
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
@@ -658,7 +698,7 @@ while not salirJuego:
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
 
-            personaje.mover(pared = paredGrupo, virus = virusGrupo, lista = zonaDeTransporte)
+            
 
             #estaSolucionado()
             #estaSinMovimientos()
@@ -680,6 +720,8 @@ while not salirJuego:
                     case "UAIBOTINO":
                         imgAvatar=pygame.transform.scale(pygame.image.load("UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOT"
+
+            personaje.mover(pared = paredGrupo, virus = virusGrupo, robot = personajeActual, lista = zonaDeTransporte)
                                  
               
         virusQueSeMueveRect.left = virusQueSeMueveRect.left - 1
