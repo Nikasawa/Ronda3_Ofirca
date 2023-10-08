@@ -19,6 +19,9 @@ reloj = pygame.time.Clock()
 dt = 0
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 
+posXjugador = 2
+posYjugador = 5
+
 # -----> Variables Ofirca <-----#
 
 global ticksAlComenzar
@@ -83,54 +86,18 @@ def dibujarFondo():
 def crearZonaDeTransporte():
 
     # ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
-    zonaDeTransporte = [[0 for x in range(cantidadDeCasillasPorLado+1)] for y in range(cantidadDeCasillasPorLado+1)] 
-    
-    zonaDeTransporte[1][1] = 'pared'
-    zonaDeTransporte[2][1] = 'pared'
-
-    zonaDeTransporte[1][8] = 'pared'
-    zonaDeTransporte[2][8] = 'pared'
-    zonaDeTransporte[3][8] = 'pared'
-    zonaDeTransporte[4][8] = 'pared'
-    zonaDeTransporte[5][8] = 'pared'
-    zonaDeTransporte[6][8] = 'pared'
-    zonaDeTransporte[7][8] = 'pared'
-    zonaDeTransporte[8][8] = 'pared'
-
-    zonaDeTransporte[1][2] = 'pared'
-    zonaDeTransporte[1][3] = 'pared'
-    zonaDeTransporte[1][5] = 'pared'
-    zonaDeTransporte[1][6] = 'pared'
-    zonaDeTransporte[1][7] = 'pared'
-    
-    zonaDeTransporte[8][2] = 'pared'
-    zonaDeTransporte[8][3] = 'pared'
-    zonaDeTransporte[8][4] = 'pared'
-    zonaDeTransporte[8][5] = 'pared'
-    zonaDeTransporte[8][6] = 'pared'
-    zonaDeTransporte[8][7] = 'pared'
-
-    zonaDeTransporte[2][5] = 'jugador'
-
-    zonaDeTransporte[4][4] = 'paredAlternativa'    
-       
-    zonaDeTransporte[4][5] = 'virus'    
-    zonaDeTransporte[5][6] = 'virus'    
-    zonaDeTransporte[5][5] = 'pared' 
-    zonaDeTransporte[6][3] = 'pared'
 
     zonaDeTransporte = [[0, 0, 0, 0, 0, 0, 0, 0, 0],
                         [0, 1, 1, 1, 1, 1, 1, 1, 1],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1],
                         [0, 1, 6, 0, 5, 0, 0, 0, 1],
-                        [0, 1, 3, 0, 2, 1, 0, 0, 1],
-                        [0, 1, 6, 0, 0, 2, 0, 0, 1],
+                        [0, 1, 3, 0, 4, 1, 0, 0, 1],
+                        [0, 1, 6, 0, 0, 4, 0, 0, 1],
                         [0, 1, 0, 0, 0, 0, 0, 0, 1],
                         [0, 1, 1, 1, 1, 1, 1, 1, 1]]
-
-    lstAreaProtegida.append((2,4))
-    lstAreaProtegida.append((2,6))
+    
+    zonaDeTransporte[posYjugador][posXjugador] = 3
     
     return zonaDeTransporte
 
@@ -151,40 +118,6 @@ def posicionarElemento(elemento,x,y):
 def borrarElemento(x,y):
     global zonaDeTransporte
     zonaDeTransporte[x][y]=0
-
-def dibujarZonaDeTransporte():
-
-    global zonaDeTransporte
-    global avatarRect
-    
-    # Los For arrancan a contar desde el 1 ya que despues se multiplican con los las coordenadas
-    # Si arrancaran en 0, se dibujarian pegados a los bordes de la pantalla
-
-    for i in range(1,cantidadDeCasillasPorLado+1):
-        for j in range(1,cantidadDeCasillasPorLado+1):
-            
-            pygame.draw.rect(pantalla, colorVerde,[cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i,cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla])
-
-            if (hayAreaProtegidaEn(j,i)==True):
-                pantalla.blit(imgAreaProtegida, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i)) 
-           
-
-                # El jugador se compone de dos partes:
-                    # El sprite y la posicion en la que se dibuja
-                    # El marco de la colision
-                # Esto quiere decir que puede darse el error de que se dibuje en un lado y detecte que colisiona con algo de otra parte
-                    
-                avatarRect=pygame.Rect(cantPixelesPorLadoCasilla * (j),cantPixelesPorLadoCasilla * (i),cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla)
-            if (zonaDeTransporte[j][i]=='pared'):          
-               pantalla.blit(imgPared, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))
-
-            # Pared parecida a la que esta en la consigna. Supongo que se adelantaron (?
-            if (zonaDeTransporte[j][i]=='paredAlternativa'):
-               pantalla.blit(imgParedAlternativa, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))
-
-
-    pygame.draw.rect(pantalla, colorBlanco, [cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla],1)       
-    pygame.display.update()
 
 #endregion
 
@@ -220,8 +153,6 @@ def actualizarContadorDeMovimientos(num):
 
     pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
 
-
-    pygame.display.update()
     
 # Clase del jugador
 class jugador(pygame.sprite.Sprite):
@@ -233,14 +164,17 @@ class jugador(pygame.sprite.Sprite):
         self.surface.fill('red')
         self.pos_x = pos_x
         self.pos_y = pos_y
-        self.x = x
-        self.y = y
+        self.width = x
+        self.heigth = y
 
         self.rect = self.surface.get_rect()
         self.rect.x = self.pos_x
         self.rect.y = self.pos_y
-        self.rect.width = self.x
-        self.rect.height = self.y 
+        self.rect.width = self.width
+        self.rect.height = self.heigth
+
+        self.x = 2
+        self.y = 5
         
         self.cambioSala = False
 
@@ -252,6 +186,17 @@ class jugador(pygame.sprite.Sprite):
         global indexVertical, movAbajo, movArriba
 
         moverse = True
+
+        for sprite in virus:
+            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(64)), self.rect.width, self.rect.height):
+                for sprite in pared:
+                    if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(128)), self.rect.width, self.rect.height):
+                        moverse = False
+                        break
+                if signo == '-': 
+                    movArriba = True
+                if signo == '+':
+                    movAbajo = True
 
         for sprite in pared:
             if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.y) + signo + str(64)), self.rect.width, self.rect.height):
@@ -287,7 +232,19 @@ class jugador(pygame.sprite.Sprite):
 
         moverse = True
 
-        for sprite in pared:
+        for sprite in virus:
+            if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
+                for pared in pared:
+                    if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
+                        moverse = False
+                        break
+                
+                if signo == '-': 
+                    movIzquierda = True
+                if signo == '+':
+                    movDerecha = True
+
+        for pared in pared:
             if sprite.rect.colliderect(eval(str(self.rect.x) + signo + str(64)), self.rect.top, self.rect.width, self.rect.height):
                 moverse = False
 
@@ -317,29 +274,55 @@ class jugador(pygame.sprite.Sprite):
                 indexHorizontal -= 1
             else:
                 self.rect.left = 0
+                  
+    def EmpujarVertical(self, simbolo, lista):
 
-    def mover(self, pared, virus, bool = []):
+        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
+
+
+            lista[self.y][self.x] = 0
+            self.y = eval(str(self.y) + simbolo + '1')
+            lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
+
+        elif lista[eval(str(self.y) + simbolo + '1')][self.x] == 0:
+
+
+            lista[self.y][self.x] = 0
+            self.y = eval(str(self.y) + simbolo + '1')
+        
+    def EmpujarHorizontal(self, simbolo, lista):
+
+        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+            
+
+            lista[self.y][self.x] = 0
+            self.x = eval(str(self.x) + simbolo + '1')
+            lista[self.y][eval(str(self.x) + simbolo + '1')] = 4
+            
+
+        elif lista[self.y][eval(str(self.x) + simbolo + '1')] == 0:
+
+            lista[self.y][self.x] = 0
+            self.x = eval(str(self.x) + simbolo + '1')
+
+    def mover(self, pared, virus, bool = [], lista = []):
         
         if pygame.key.get_pressed()[pygame.K_w]:
-            self.movVertical('-', bool, pared, virus)
+            self.EmpujarVertical('-', lista)
 
         if pygame.key.get_pressed()[pygame.K_s]:
-            self.movVertical('+', bool, pared, virus)
+            self.EmpujarVertical('+', lista)
 
         if pygame.key.get_pressed()[pygame.K_d]:
-            self.movHorizontal('+', bool, pared, virus)
+            self.EmpujarHorizontal('+', lista)
 
         if pygame.key.get_pressed()[pygame.K_a]:
-            self.movHorizontal('-', bool, pared, virus)
+            self.EmpujarHorizontal('-', lista)
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
+        lista[self.y][self.x] = 3
 
-
-    def dibujar(self):
-
-        # dibujo del jugador, con el sprite (por ahora es un color), y la rect (es una tupla con el tamaño y la posicion)
-        pantalla.blit(imgAvatar, (self.rect.left, self.rect.top))
 
 class virus(pygame.sprite.Sprite):
 
@@ -349,24 +332,27 @@ class virus(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self) 
         self.posX = posX
         self.posY = posY
-        self.surface = pygame.Surface((self.posX, self.posY))
+        self.surface = pygame.Surface((64, 64))
         self.rect = self.surface.get_rect()
         self.rect.x = self.posX
         self.rect.y = self.posY
 
-    def update(self):
+    def update(self, rect):
 
-        if movArriba:
-            self.rect.top - 64
+        global movArriba, movAbajo, movDerecha, movIzquierda
 
-        if movAbajo:
-            self.rect.top + 64
+        if self.rect.colliderect(rect):
+            if movArriba:
+                self.rect.top -= 64
 
-        if movDerecha:
-            self.rect.left - 64
+            if movAbajo:
+                self.rect.top += 64
 
-        if movIzquierda:
-            self.rect.left + 64
+            if movDerecha:
+                self.rect.left += 64
+
+            if movIzquierda:
+                self.rect.left -= 64
 
         pantalla.blit(imgVirus, (self.rect.left, self.rect.top))
 
@@ -394,12 +380,13 @@ paredGrupo = pygame.sprite.Group()
 
 for numY, y in enumerate(zonaDeTransporte):
     for numX, x in enumerate(y): 
+
         if y[numX] == 3:
             personaje = jugador(numX * 64, numY * 64, 64, 64)
-        if y[numX] == 2:
-            virusGrupo.add(virus(numX * 64, numY * 64))
-        if y[numX] == 1:
-            paredGrupo.add(pared(numX * 64, numY * 64))
+        #if y[numX] == 2:
+        #    virusGrupo.add(virus(numX * 64, numY * 64))
+        #if y[numX] == 1:
+        #   paredGrupo.add(pared(numX * 64, numY * 64))
 
 
 def dibujarReglas():
@@ -412,8 +399,7 @@ def dibujarReglas():
     y=3
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     pantalla.blit(textoReglas,(x+5,y,ancho,alto))
-    
-    pygame.display.update()
+
 
 def actualizarTiempoRestante():
     global segundosRestantes
@@ -432,8 +418,6 @@ def actualizarTiempoRestante():
     pygame.draw.rect(pantalla,colorNaranja,(x,y,calculoPorcentajeTiempo*2,alto))
 
     pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
-
-    pygame.display.update()
 
 def actualizarContadorMovUAIBOT():
     global contMovUAIBOT
@@ -457,8 +441,7 @@ def actualizarTiempoDeJuegoActual():
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     textoSegundos = tipografiaGrande.render('Segundos transcurridos: ' + str(round(segundosTranscurridos)), False, colorBlanco)
     pantalla.blit(textoSegundos,(x+5,y,ancho,alto))
-    pygame.display.update()
-
+   
 def dibujarCartelIndicadorRonda():
     textoFelicitacion = tipografiaGrande.render('Ronda final', False, colorBlanco)
     ancho=160
@@ -467,7 +450,7 @@ def dibujarCartelIndicadorRonda():
     y=5
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     pantalla.blit(textoFelicitacion,(x+5,y,ancho,alto))
-    pygame.display.update()
+    
 
 def obtenerDelArchivo5ConMenosMovimientos():
   file = open("ranking.txt", "r")
@@ -512,10 +495,9 @@ def dibujarRanking():
         pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
         pantalla.blit(textoRanking,(x+5,y,ancho,alto))
         i=i+1
-       
-    pygame.display.update()
     
 def dibujarPorcentajeDeMovimientos():
+
     global cantidadDeMovimientosActual
 
     ancho=220
@@ -523,7 +505,8 @@ def dibujarPorcentajeDeMovimientos():
     x=850
     y=25
 
-    if (cantidadDeMovimientosActual>0):
+    if (cantidadDeMovimientosActual > 0):
+
         porcentajeMovUAIBOT=(100*contMovUAIBOT)/cantidadDeMovimientosActual
         porcentajeMovUAIBOTA=(100*contMovUAIBOTA)/cantidadDeMovimientosActual
         porcentajeMovUAIBOTINA=(100*contMovUAIBOTINA)/cantidadDeMovimientosActual
@@ -543,22 +526,45 @@ def dibujarPorcentajeDeMovimientos():
         pantalla.blit(textoPorcentajeMovUAIBOTINA,(x+5,y,ancho,alto))
 
 
+def dibujarZonaDeTransporte(zona):
 
-    pygame.display.update()
+    global zonaDeTransporte
+    global avatarRect
+    
+    # Los For arrancan a contar desde el 1 ya que despues se multiplican con los las coordenadas
+    # Si arrancaran en 0, se dibujarian pegados a los bordes de la pantalla
 
+    for y in range(1,cantidadDeCasillasPorLado+1):
+        for x in range(1,cantidadDeCasillasPorLado+1):
+            
+            pygame.draw.rect(pantalla, colorVerde,[cantPixelesPorLadoCasilla*x,cantPixelesPorLadoCasilla*y,cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla])
+            
+            if zona[y][x] in [1, 3, 4, 5, 6]:
+
+                totalImagenes = [0, imgPared, 0, imgAvatar, imgVirus, imgParedAlternativa, imgAreaProtegida]
+                pantalla.blit(totalImagenes[zonaDeTransporte[y][x]], (cantPixelesPorLadoCasilla*x,cantPixelesPorLadoCasilla*y))
+           
+
+                # El jugador se compone de dos partes:
+                    # El sprite y la posicion en la que se dibuja
+                    # El marco de la colision
+                # Esto quiere decir que puede darse el error de que se dibuje en un lado y detecte que colisiona con algo de otra parte
+
+    pygame.draw.rect(pantalla, colorBlanco, [cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla],1)       
+    
 
 def dibujarTodo():
     dibujarFondo()
-    dibujarZonaDeTransporte()
+    dibujarZonaDeTransporte(zonaDeTransporte)
     dibujarCartelIndicadorRonda()
     dibujarReglas()
     dibujarRanking()
-    
-    pygame.display.update()
 
-dibujarTodo()
+
+#dibujarTodo()
 
 def estaSolucionado():
+
     global nivelCompletado
     global zonaDeTransporte
 
@@ -620,34 +626,46 @@ def escribirMovimientosEnArchivo():
         resetearJuego()
 
 def estaSinMovimientos():
+
     global cantidadDeMovimientosRestantes
     if (nivelCompletado==False) and (cantidadDeMovimientosRestantes<=0):
         resetearJuego()
 
+
+
 while not salirJuego:
+
     segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
     segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
-    
-    actualizarTiempoDeJuegoActual() 
-    actualizarTiempoRestante()
 
     if (segundosRestantes<=0):
        resetearJuego()
 
+    dibujarFondo()
+    
+    actualizarTiempoDeJuegoActual() 
+    actualizarTiempoRestante()
+
     movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
+    
 
     for event in pygame.event.get():    
         if event.type == pygame.QUIT:
             salirJuego = True
+
         if event.type == pygame.MOUSEBUTTONDOWN:
            if miraRect.colliderect(virusQueSeMueveRect):
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
 
-            personaje.mover(pared = paredGrupo, virus = virusGrupo)
+            personaje.mover(pared = paredGrupo, virus = virusGrupo, lista = zonaDeTransporte)
+
+            #estaSolucionado()
+            #estaSinMovimientos()
 
             if event.key == pygame.K_r: 
-                resetearJuego()
+                print(zonaDeTransporte)
+
             elif event.key == pygame.K_e:
                 match personajeActual:
                     case "UAIBOT":          
@@ -663,23 +681,14 @@ while not salirJuego:
                         imgAvatar=pygame.transform.scale(pygame.image.load("UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOT"
                                  
-        dibujarZonaDeTransporte()       
+              
         virusQueSeMueveRect.left = virusQueSeMueveRect.left - 1
         
         x = pygame.time.get_ticks() / 40  % 400
         y = int(math.sin(x/25.0) * 50 + 160)
 
-        dt = reloj.tick() / 1000
-
-        personaje.dibujar()
-        virusGrupo.update()
-        paredGrupo.update()
-
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
-
-        pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
-        pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top))   
 
         miraRect.center=(pygame.mouse.get_pos())
         rectanguloDeZonaDeTransporte=pygame.Rect(cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2),cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2))
@@ -687,9 +696,19 @@ while not salirJuego:
         if miraRect.colliderect(rectanguloDeZonaDeTransporte):
             pantalla.blit(imgMira, (miraRect.left, miraRect.top))    
                      
-        estaSolucionado()
-        estaSinMovimientos()
-        pygame.display.flip      
+    pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
+    pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top)) 
+
+    dibujarZonaDeTransporte(zonaDeTransporte)
+    
+    dt = reloj.tick() / 1000
+
+    
+    
+    virusGrupo.update(personaje.rect)
+    paredGrupo.update()
+
+    pygame.display.update()
 
     if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect):
         resetearJuego()
