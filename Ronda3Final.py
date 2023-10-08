@@ -5,12 +5,6 @@ import math
 import pygame
 import random
 
-#Importacion de clases
-from clases import sinosuidal
-from clases import Textos
-from clases import Input
-from clases import sinosuidal
-
 pygame.init()
 pygame.font.init() 
 pygame.mixer.music.load("assets/sounds/paseNivel.wav") 
@@ -670,7 +664,7 @@ def irALaIzquierdaConUAIBOTIN():
 
 ###################################### Clases #######################################################
 # Empiezo a programar la clase del virus sinosuidal
-class inosuidal:
+class Sinosuidal:
 
     def __init__(self, sprite):
 
@@ -748,7 +742,7 @@ class inosuidal:
 
 # El atributo de sprite es un string, pero en realidad la clase
 # todavia no usa ningun parametro mas que self.
-virusSinosuidal = sinosuidal(random.choice(listaVirus)) 
+virusSinosuidal = Sinosuidal(random.choice(listaVirus)) 
 # Funciones para reestablecer las variables a su valor inicial. Funciones que corroboran si se cumplen condiciones de derrota o victoria.
 
 #Clase de textos
