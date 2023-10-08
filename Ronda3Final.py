@@ -18,9 +18,16 @@ tipografiaGrande=pygame.font.SysFont('Arial', 24)
 reloj = pygame.time.Clock()
 dt = 0
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
+jugando = False
 
 posXjugador = 2
 posYjugador = 5
+
+# -----> Declaraciones de botones <-----#
+
+#Instancia imagen (y reescalado) de boton inicio
+button_surface = pygame.image.load("assets/img/classic/boton.png")
+button_surface = pygame.transform.scale(button_surface, (150, 50))
 
 # -----> Variables Ofirca <-----#
 
@@ -47,15 +54,15 @@ cantPixelesPorLadoCasilla=64
 salirJuego = False
 lstAreaProtegida=[]
 
-imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
 avatarRect=imgAvatar.get_rect()   
-imgMira=pygame.transform.scale(pygame.image.load("assets/img/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
-imgPared=pygame.transform.scale(pygame.image.load("assets/img/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
-imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
-imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+imgMira=pygame.transform.scale(pygame.image.load("assets/img/classic/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+imgPared=pygame.transform.scale(pygame.image.load("assets/img/classic/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/classic/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/classic/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
 
-imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/areaprotegida.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-listaVirus  = ["assets/img/virus1.png","assets/img/virus2.png","assets/img/virus3.png","assets/img/virus4.png","assets/img/virus5.png","assets/img/virus6.png"]
+imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/classic/areaprotegida.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+listaVirus  = ["assets/img/classic/virus1.png","assets/img/classic/virus2.png","assets/img/classic/virus3.png","assets/img/classic/virus4.png","assets/img/classic/virus5.png","assets/img/classic/virus6.png"]
 
 imgVirus=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 imgVirusQueSeMueve=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
@@ -80,7 +87,7 @@ cantidadDeMovimientosDeterminada=30
 cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
 
 def dibujarFondo():
-    fondo = pygame.image.load("assets/img/fondo.png")
+    fondo = pygame.image.load("assets/img/classic/fondo.png")
     pantalla.blit(fondo, (0, 0))
 
 #region tablero
@@ -304,6 +311,8 @@ class jugador(pygame.sprite.Sprite):
         
         if pygame.key.get_pressed()[pygame.K_w]:
             
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
+
             match robot:
                     case "UAIBOT":
                         self.EmpujarVertical('-', lista)
@@ -316,6 +325,8 @@ class jugador(pygame.sprite.Sprite):
                 
 
         if pygame.key.get_pressed()[pygame.K_s]:
+            
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
 
             match personajeActual:
                     case "UAIBOT":
@@ -330,7 +341,10 @@ class jugador(pygame.sprite.Sprite):
             
 
         if pygame.key.get_pressed()[pygame.K_d]:
-             match personajeActual:
+            
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
+
+            match personajeActual:
                     case "UAIBOT":
                         self.EmpujarHorizontal('+', lista)
                     case "UAIBOTA":
@@ -342,6 +356,9 @@ class jugador(pygame.sprite.Sprite):
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
+
+            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
+
             match personajeActual:
                     case "UAIBOT":
                         self.EmpujarHorizontal('-', lista)
@@ -354,7 +371,6 @@ class jugador(pygame.sprite.Sprite):
             
         
         actualizarContadorDeMovimientos(1)
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[4][2] = 6
         lista[6][2] = 6
         lista[self.y][self.x] = 3
@@ -855,7 +871,16 @@ def estaSinMovimientos():
     if (nivelCompletado==False) and (cantidadDeMovimientosRestantes<=0):
         resetearJuego()
 
+#Declaraciones de objetos
 
+#Declaraciones botones
+botonInicio = Button(button_surface, 790, 265, "Iniciar juego", False)
+#Inputs para nombre y movimientos
+inputNombre = Input(600, 120, 400, tipografia,colorNegro)
+inputMov = Input(600, 200, 400, tipografia,colorNegro)
+#Grupos que permiten cargar los inputs
+grupo = pygame.sprite.Group(inputNombre)
+grupo2 = pygame.sprite.Group(inputMov)
 
 while not salirJuego:
 
@@ -880,8 +905,35 @@ while not salirJuego:
         if event.type == pygame.MOUSEBUTTONDOWN:
            if miraRect.colliderect(virusQueSeMueveRect):
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
-        if event.type == pygame.KEYDOWN:
 
+    #=================================================================================#
+    #                              Deteccion de botones                               # 
+
+        #Deteccion de eventos de inputs
+        if(jugando == False):
+            grupo.update()
+        if(inputNombre.text != "" and jugando == False):
+            grupo2.update()
+
+        #Evita la escritura el ambos inputs a la vez
+        if event.type == pygame.MOUSEBUTTONDOWN and inputNombre.rect.collidepoint(event.pos) == False:
+            inputNombre.activo = False
+        if event.type == pygame.MOUSEBUTTONDOWN and inputMov.rect.collidepoint(event.pos) == False:
+            inputMov.activo = False
+
+        if(botonInicio.presionado == False):
+            #Deteccion de boton Inicio
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if(botonInicio.DetectarInput(pygame.mouse.get_pos())):
+                    botonInicio.presionado = not(botonInicio.presionado)
+
+                    #Variables para trackear estado de juego
+                    jugando = True
+
+    #=================================================================================#
+
+        if event.type == pygame.KEYDOWN and jugando == True:
+            
             #estaSolucionado()
             #estaSinMovimientos()
 
@@ -891,16 +943,16 @@ while not salirJuego:
             elif event.key == pygame.K_e:
                 match personajeActual:
                     case "UAIBOT":          
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOTA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOTA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOTA"
                     case "UAIBOTA":
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOTINA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOTINA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOTINA"
                     case "UAIBOTINA":
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOTINO.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOTINO.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOTINO"
                     case "UAIBOTINO":
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOT"
 
             personaje.mover(pared = paredGrupo, virus = virusGrupo, robot = personajeActual, lista = zonaDeTransporte)
@@ -924,10 +976,25 @@ while not salirJuego:
     pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top)) 
 
     dibujarZonaDeTransporte(zonaDeTransporte)
-    
-    dt = reloj.tick() / 1000
 
+    #=================================================================================#
+
+    #Dibuja boton "Iniciar Juego"
+    if(botonInicio.presionado == False):
+        botonInicio.Actualizar()
+        botonInicio.CambiarColorBoton(pygame.mouse.get_pos(),"black","black")
+
+    #Dibuja Input Nombre
+    if (jugando == False):
+        grupo.draw(pantalla)
     
+    #Dibuja Input Movimientos
+    if(inputNombre.text != "" and jugando == False):
+        grupo2.draw(pantalla)
+    
+    #=================================================================================#
+
+    dt = reloj.tick() / 1000
     
     virusGrupo.update(personaje.rect)
     paredGrupo.update()
