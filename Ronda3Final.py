@@ -13,6 +13,14 @@ pantalla= pygame.display.set_mode((1152,648))
 tipografia = pygame.font.SysFont('Arial', 18)
 tipografiaGrande=pygame.font.SysFont('Arial', 24)
 
+# -----> Variables Nuestras <-----#
+
+reloj = pygame.time.Clock()
+dt = 0
+movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
+
+# -----> Variables Ofirca <-----#
+
 global ticksAlComenzar
 global cantidadDeMovimientosRestantes
 global cantidadDeMovimientosActual
@@ -149,13 +157,13 @@ def dibujarZonaDeTransporte():
 
             if (hayAreaProtegidaEn(j,i)==True):
                 pantalla.blit(imgAreaProtegida, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i)) 
-            if (zonaDeTransporte[j][i]=='jugador'):
+           
 
                 # El jugador se compone de dos partes:
                     # El sprite y la posicion en la que se dibuja
                     # El marco de la colision
                 # Esto quiere decir que puede darse el error de que se dibuje en un lado y detecte que colisiona con algo de otra parte
-                pantalla.blit(imgAvatar, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))     
+                    
                 avatarRect=pygame.Rect(cantPixelesPorLadoCasilla * (j),cantPixelesPorLadoCasilla * (i),cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla)
             if (zonaDeTransporte[j][i]=='pared'):          
                pantalla.blit(imgPared, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))
@@ -164,16 +172,203 @@ def dibujarZonaDeTransporte():
             if (zonaDeTransporte[j][i]=='paredAlternativa'):
                pantalla.blit(imgParedAlternativa, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))
 
-            # Aca se dibuja el virus pero la colision se define en otro lado
-            if (zonaDeTransporte[j][i]=='virus'):
-               pantalla.blit(imgVirus, (cantPixelesPorLadoCasilla*j,cantPixelesPorLadoCasilla*i))
-
 
     pygame.draw.rect(pantalla, colorBlanco, [cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla],1)       
     pygame.display.update()
 
 #endregion
+
+def actualizarContadorDeMovimientos(num):
+    global cantidadDeMovimientosActual
+    global cantidadDeMovimientosRestantes
+
+       
+    cantidadDeMovimientosActual=cantidadDeMovimientosActual+num
+    cantidadDeMovimientosRestantes=cantidadDeMovimientosRestantes-1
     
+    if cantidadDeMovimientosRestantes<0:
+        cantidadDeMovimientosRestantes=0
+    
+    ancho=350
+    alto=30
+    x=75+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
+    y=cantPixelesPorLadoCasilla*5
+    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
+    textoPasos = tipografiaGrande.render('Cantidad de movimientos: ' + str(cantidadDeMovimientosActual), False, colorBlanco)
+    pantalla.blit(textoPasos,(x+5,y,ancho,alto))    
+   
+    y=cantPixelesPorLadoCasilla*6 
+    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho + 32,alto))
+    textoMovimientosRestantes = tipografiaGrande.render('Cantidad de movimientos restantes: ' + str(cantidadDeMovimientosRestantes), False, colorBlanco)
+    pantalla.blit(textoMovimientosRestantes,(x+5,y,ancho,alto))
+
+    calculoPorcentajeMovimientos = round((100 * cantidadDeMovimientosRestantes)/cantidadDeMovimientosDeterminada) 
+    textoPorcentaje = tipografiaGrande.render(str(calculoPorcentajeMovimientos) + ' %', False, colorBlanco)
+    y=cantPixelesPorLadoCasilla*6+32
+    pygame.draw.rect(pantalla,colorAzul,(x,y,200,alto))
+    pygame.draw.rect(pantalla,colorNaranja,(x,y,calculoPorcentajeMovimientos*2,alto))
+
+    pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
+
+
+    pygame.display.update()
+    
+# Clase del jugador
+class jugador(pygame.sprite.Sprite):
+
+    def __init__(self, pos_x, pos_y, x, y):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.surface = pygame.Surface((x, y))
+        self.surface.fill('red')
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.x = x
+        self.y = y
+
+        self.rect = self.surface.get_rect()
+        self.rect.x = self.pos_x
+        self.rect.y = self.pos_y
+        self.rect.width = self.x
+        self.rect.height = self.y 
+        
+        self.cambioSala = False
+
+    def movVertical(self, signo, bool, block):
+
+        # signo: Direccion a la que se va a mover (logica para reducir codigo)
+        # bool: Condicion al llegar al limite del mapa. Pregunta si hay una sala al costado para moverse a ella o chocar contra la pared
+
+        global indexVertical, movAbajo, movArriba
+
+        for sprite in block:
+            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.top) + signo + str(64)), self.rect.width, self.rect.height):
+                if signo == '+':
+                    movAbajo = True
+                if signo == '-':
+                    movArriba = True
+        
+        self.rect.top = eval(str(self.rect.top) + signo + str(64))
+
+        if self.rect.top <= 0:
+
+            if signo == '-' and 'arriba' in bool:
+                self.rect.bottom = pantalla.get_height()
+                self.cambioSala = True
+                indexVertical -= 1
+            else:
+                self.rect.top = 0
+
+        if self.rect.bottom >= pantalla.get_height():
+
+            if signo == '+' and 'abajo' in bool:
+                self.rect.top = 0
+                self.cambioSala = True
+                indexVertical += 1
+            else:
+                self.rect.bottom = pantalla.get_height()
+
+    # Movimiento del jugador, misma logica que en el juego de ofirca. Se usa un eval para tener la ecuacion: la posicion acutal, signo ingresado (que puede ser + o -), y los frames por segundo aumentados un poquito
+    def movHorizontal(self, signo, bool, block):
+            
+        self.rect.x = eval(str(self.rect.left) + signo + str(64))
+
+        global indexHorizontal, movIzquierda, movDerecha
+
+        for sprite in block:
+            if sprite.rect.colliderect(self.rect.left, eval(str(self.rect.top) + signo + str(64)), self.rect.width, self.rect.height):
+                if signo == '+':
+                    movDerecha = True
+                if signo == '-':
+                    movIzquierda = True
+
+        # Esto es para probar el cambio de 'salas', ahora solo cambia de color la pantalla
+
+        # si llega a uno de los dos extremos de la pantalla y tiene una habitacion al costado, pasa a esa sala (el mapa cambia de color y se posiciona al otro extremo de la pantalla), 
+        # si no, 
+        # choca contra la pared (su posicion se establece al mayor rango que tiene, para dar la ilusion de un limite)
+
+        if self.rect.right >= pantalla.get_width():
+
+            if signo == '+' and 'derecha' in bool:
+                self.rect.left = 0
+                self.cambioSala = True
+                indexHorizontal += 1
+            else:
+                self.rect.right = pantalla.get_width()
+
+        if  self.rect.left <= 0:
+
+            if signo == '-' and 'izquierda' in bool:
+                self.rect.right = pantalla.get_width()
+                self.cambioSala = True
+                indexHorizontal -= 1
+            else:
+                self.rect.left = 0
+
+    def mover(self, block, bool = []):
+        
+        if pygame.key.get_pressed()[pygame.K_w]:
+            self.movVertical('-', bool, block)
+
+        if pygame.key.get_pressed()[pygame.K_s]:
+            self.movVertical('+', bool, block)
+
+        if pygame.key.get_pressed()[pygame.K_d]:
+            self.movHorizontal('+', bool, block)
+
+        if pygame.key.get_pressed()[pygame.K_a]:
+            self.movHorizontal('-', bool, block)
+        
+        actualizarContadorDeMovimientos(1)
+        pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
+
+
+    def dibujar(self):
+
+        # dibujo del jugador, con el sprite (por ahora es un color), y la rect (es una tupla con el tamaño y la posicion)
+        pantalla.blit(imgAvatar, (self.rect.left, self.rect.top))
+
+class virus(pygame.sprite.Sprite):
+
+    def __init__(self, posX, posY):
+
+        # Aca se heredan las propiedades
+        pygame.sprite.Sprite.__init__(self) 
+        self.posX = posX
+        self.posY = posY
+        self.surface = pygame.Surface((self.posX, self.posY))
+        self.rect = self.surface.get_rect()
+        self.rect.x = self.posX
+        self.rect.y = self.posY
+
+    def update(self):
+
+        if movArriba:
+            self.rect.top - 64
+
+        if movAbajo:
+            self.rect.top + 64
+
+        if movDerecha:
+            self.rect.left - 64
+
+        if movIzquierda:
+            self.rect.left + 64
+
+        pantalla.blit(imgVirus, (self.rect.left, self.rect.top)) 
+
+# Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
+# Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
+virusTotal = pygame.sprite.Group()
+
+for numY, y in enumerate(zonaDeTransporte):
+    for numX, x in enumerate(y): 
+        if y[numX] == 'jugador':
+            personaje = jugador(numX * 64, numY * 64, 64, 64)
+        if y[numX] == 'virus':
+            virusTotal.add(virus(numX * 64, numY * 64))
+
 def dibujarReglas():
 
     textoReglas = tipografia.render('Mueve a tu avatar con las flechas para que lleve los virus a las zonas protegidas.', False, colorBlanco)
@@ -229,41 +424,6 @@ def actualizarTiempoDeJuegoActual():
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     textoSegundos = tipografiaGrande.render('Segundos transcurridos: ' + str(round(segundosTranscurridos)), False, colorBlanco)
     pantalla.blit(textoSegundos,(x+5,y,ancho,alto))
-    pygame.display.update()
-
-def actualizarContadorDeMovimientos(num):
-    global cantidadDeMovimientosActual
-    global cantidadDeMovimientosRestantes
-
-       
-    cantidadDeMovimientosActual=cantidadDeMovimientosActual+num
-    cantidadDeMovimientosRestantes=cantidadDeMovimientosRestantes-1
-    
-    if cantidadDeMovimientosRestantes<0:
-        cantidadDeMovimientosRestantes=0
-    
-    ancho=350
-    alto=30
-    x=75+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
-    y=cantPixelesPorLadoCasilla*5
-    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
-    textoPasos = tipografiaGrande.render('Cantidad de movimientos: ' + str(cantidadDeMovimientosActual), False, colorBlanco)
-    pantalla.blit(textoPasos,(x+5,y,ancho,alto))    
-   
-    y=cantPixelesPorLadoCasilla*6 
-    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho + 32,alto))
-    textoMovimientosRestantes = tipografiaGrande.render('Cantidad de movimientos restantes: ' + str(cantidadDeMovimientosRestantes), False, colorBlanco)
-    pantalla.blit(textoMovimientosRestantes,(x+5,y,ancho,alto))
-
-    calculoPorcentajeMovimientos = round((100 * cantidadDeMovimientosRestantes)/cantidadDeMovimientosDeterminada) 
-    textoPorcentaje = tipografiaGrande.render(str(calculoPorcentajeMovimientos) + ' %', False, colorBlanco)
-    y=cantPixelesPorLadoCasilla*6+32
-    pygame.draw.rect(pantalla,colorAzul,(x,y,200,alto))
-    pygame.draw.rect(pantalla,colorNaranja,(x,y,calculoPorcentajeMovimientos*2,alto))
-
-    pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
-
-
     pygame.display.update()
 
 def dibujarCartelIndicadorRonda():
@@ -354,8 +514,6 @@ def dibujarPorcentajeDeMovimientos():
     pygame.display.update()
 
 
-
-
 def dibujarTodo():
     dibujarFondo()
     dibujarZonaDeTransporte()
@@ -390,276 +548,6 @@ def estaSolucionado():
     dibujarReglas()
     escribirMovimientosEnArchivo()
     dibujarPorcentajeDeMovimientos()
- 
-#region Movimientos jugador
-# Ver como lo desechamos todo a la mierda.
-def irALaDerechaConUAIBOT():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j+1][i]==0):
-                    posicionarElemento('jugador',j+1,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break                
-                if(zonaDeTransporte[j+1][i]=='virus') and not ((zonaDeTransporte[j+2][i]=='pared') or (zonaDeTransporte[j+2][i]=='virus') or (zonaDeTransporte[j+2][i]=='paredAlternativa')):                  
-                    posicionarElemento('virus',j+2,i)
-                    posicionarElemento('jugador',j+1,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                if(zonaDeTransporte[j+1][i]=='paredAlternativa') and (zonaDeTransporte[j+2][i]==0):
-                    posicionarElemento('jugador',j+1,i)
-                    posicionarElemento('paredAlternativa',j+2,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irArribaConUAIBOT():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j][i-1]==0):
-                    posicionarElemento('jugador',j,i-1)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()                  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                if(zonaDeTransporte[j][i-1]=='virus') and not ((zonaDeTransporte[j][i-2]=='pared') or (zonaDeTransporte[j][i-2]=='virus')  or (zonaDeTransporte[j][i-2]=='paredAlternativa')):
-                    posicionarElemento('virus',j,i-2)
-                    posicionarElemento('jugador',j,i-1)
-                    actualizarContadorDeMovimientos(1)   
-                    actualizarContadorMovUAIBOT()                
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irAbajoConUAIBOT():
-    global zonaDeTransporte
-    for j in range(1,cantidadDeCasillasPorLado):
-        for i in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j][i+1]==0):
-                    posicionarElemento('jugador',j,i+1)
-                    actualizarContadorDeMovimientos(1)       
-                    actualizarContadorMovUAIBOT()    
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                if(zonaDeTransporte[j][i+1]=='virus') and not ((zonaDeTransporte[j][i+2]=='pared') or (zonaDeTransporte[j][i+2]=='virus') or (zonaDeTransporte[j][i+2]=='paredAlternativa')):
-                    posicionarElemento('virus',j,i+2)
-                    posicionarElemento('jugador',j,i+1)
-                    actualizarContadorDeMovimientos(1)     
-                    actualizarContadorMovUAIBOT()    
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irALaIzquierdaConUAIBOT():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j-1][i]==0):
-                    posicionarElemento('jugador',j-1,i)              
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                if(zonaDeTransporte[j-1][i]=='virus') and not ((zonaDeTransporte[j-2][i]=='pared') or (zonaDeTransporte[j-2][i]=='virus') or (zonaDeTransporte[j-2][i]=='paredAlternativa') ):
-                    posicionarElemento('virus',j-2,i)
-                    posicionarElemento('jugador',j-1,i)
-                    actualizarContadorDeMovimientos(1)  
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                if(zonaDeTransporte[j-1][i]=='paredAlternativa') and (zonaDeTransporte[j-2][i]==0):
-                    posicionarElemento('jugador',j-1,i)
-                    posicionarElemento('paredAlternativa',j-2,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOT()  
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irALaDerechaConUAIBOTA():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if(zonaDeTransporte[j-1][i]=='virus') and (zonaDeTransporte[j+1][i]==0):                                     
-                    posicionarElemento('jugador',j+1,i)
-                    posicionarElemento('virus',j,i)
-                    actualizarContadorDeMovimientos(1) 
-                    actualizarContadorMovUAIBOTA()
-                    borrarElemento(j-1,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif (zonaDeTransporte[j+1][i]==0):
-                    posicionarElemento('jugador',j+1,i)
-                    actualizarContadorDeMovimientos(1)  
-                    actualizarContadorMovUAIBOTA()        
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irArribaConUAIBOTA():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if(zonaDeTransporte[j][i+1]=='virus') and (zonaDeTransporte[j][i-1]==0):                                     
-                    posicionarElemento('jugador',j,i-1)
-                    posicionarElemento('virus',j,i)
-                    actualizarContadorMovUAIBOTA()
-                    borrarElemento(j,i+1)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif (zonaDeTransporte[j][i-1]==0):
-                    posicionarElemento('jugador',j,i-1)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOTA()
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irAbajoConUAIBOTA():
-    global zonaDeTransporte
-    for j in range(1,cantidadDeCasillasPorLado):
-        for i in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if(zonaDeTransporte[j][i-1]=='virus') and (zonaDeTransporte[j][i+1]==0):                                     
-                    posicionarElemento('jugador',j,i+1)
-                    posicionarElemento('virus',j,i)
-                    actualizarContadorDeMovimientos(1)       
-                    actualizarContadorMovUAIBOTA()     
-                    borrarElemento(j,i-1)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif (zonaDeTransporte[j][i+1]==0):
-                    posicionarElemento('jugador',j,i+1)
-                    actualizarContadorDeMovimientos(1)    
-                    actualizarContadorMovUAIBOTA()       
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irALaIzquierdaConUAIBOTA():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if(zonaDeTransporte[j+1][i]=='virus') and (zonaDeTransporte[j-1][i]==0):                                     
-                    posicionarElemento('jugador',j-1,i)
-                    posicionarElemento('virus',j,i)
-                    actualizarContadorDeMovimientos(1)  
-                    actualizarContadorMovUAIBOTA()
-                    borrarElemento(j+1,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif (zonaDeTransporte[j-1][i]==0):
-                    posicionarElemento('jugador',j-1,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOTA()
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-
-def irALaDerechaConUAIBOTIN():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j+1][i]==0):
-                    posicionarElemento('jugador',j+1,i)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOTINA()   
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif j+2<(len(zonaDeTransporte[j])):
-                    if(zonaDeTransporte[j+2][i]==0) and (zonaDeTransporte[j+1][i]=='virus'):
-                        posicionarElemento('jugador',j+2,i)
-                        actualizarContadorDeMovimientos(1)    
-                        actualizarContadorMovUAIBOTINA()           
-                        borrarElemento(j,i)
-                        pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                        break 
-
-def irArribaConUAIBOTIN():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j][i-1]==0):
-                    posicionarElemento('jugador',j,i-1)
-                    actualizarContadorDeMovimientos(1)
-                    actualizarContadorMovUAIBOTINA()   
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif i-2<(len(zonaDeTransporte[i])):
-                     if((zonaDeTransporte[j][i-2]==0) and (zonaDeTransporte[j][i-1]=='virus')):
-                        posicionarElemento('jugador',j,i-2)
-                        actualizarContadorDeMovimientos(1)      
-                        actualizarContadorMovUAIBOTINA()   
-                        borrarElemento(j,i)
-                        pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                        break 
-
-def irAbajoConUAIBOTIN():
-    global zonaDeTransporte
-    for j in range(1,cantidadDeCasillasPorLado):
-        for i in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):              
-                if (zonaDeTransporte[j][i+1]==0):
-                    posicionarElemento('jugador',j,i+1)
-                    actualizarContadorDeMovimientos(1)     
-                    actualizarContadorMovUAIBOTINA()    
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif i+2<(len(zonaDeTransporte[i])):
-                    if((zonaDeTransporte[j][i+2]==0) and (zonaDeTransporte[j][i+1]=='virus')):
-                        posicionarElemento('jugador',j,i+2)
-                        actualizarContadorDeMovimientos(1)         
-                        actualizarContadorMovUAIBOTINA()           
-                        borrarElemento(j,i)
-                        pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                        break 
-
-def irALaIzquierdaConUAIBOTIN():
-    global zonaDeTransporte
-    for i in range(1,cantidadDeCasillasPorLado):
-        for j in range(1,cantidadDeCasillasPorLado):
-            if (zonaDeTransporte[j][i]=='jugador'):
-                if (zonaDeTransporte[j-1][i]==0):
-                    posicionarElemento('jugador',j-1,i)
-                    actualizarContadorDeMovimientos(1)     
-                    actualizarContadorMovUAIBOTINA()         
-                    borrarElemento(j,i)
-                    pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                    break
-                elif j-2<(len(zonaDeTransporte[j])):
-                    if(zonaDeTransporte[j-2][i]==0 and zonaDeTransporte[j-1][i]=='virus'):
-                        posicionarElemento('jugador',j-2,i)
-                        actualizarContadorDeMovimientos(1)
-                        actualizarContadorMovUAIBOTINA()   
-                        borrarElemento(j,i)
-                        pygame.mixer.Channel(1).play(pygame.mixer.Sound("mover.wav"))
-                        break 
-#endregion
 
 def resetearJuego():
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
@@ -713,6 +601,8 @@ while not salirJuego:
     if (segundosRestantes<=0):
        resetearJuego()
 
+    movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
+
     for event in pygame.event.get():    
         if event.type == pygame.QUIT:
             salirJuego = True
@@ -720,47 +610,10 @@ while not salirJuego:
            if miraRect.colliderect(virusQueSeMueveRect):
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                match personajeActual:
-                    case "UAIBOT":    
-                        irALaDerechaConUAIBOT()
-                    case "UAIBOTA":
-                         irALaDerechaConUAIBOTA()
-                    case "UAIBOTINA":
-                         irALaDerechaConUAIBOTIN()        
-                    case "UAIBOTINO":
-                         irALaDerechaConUAIBOTIN()                    
-            elif event.key == pygame.K_LEFT:
-                match personajeActual:
-                    case "UAIBOT":    
-                        irALaIzquierdaConUAIBOT()
-                    case "UAIBOTA":
-                         irALaIzquierdaConUAIBOTA()  
-                    case "UAIBOTINA":
-                         irALaIzquierdaConUAIBOTIN() 
-                    case "UAIBOTINO":
-                         irALaIzquierdaConUAIBOTIN()    
-            elif event.key == pygame.K_UP:
-                match personajeActual:
-                    case "UAIBOT":    
-                        irArribaConUAIBOT()
-                    case "UAIBOTA":
-                         irArribaConUAIBOTA() 
-                    case "UAIBOTINA":
-                         irArribaConUAIBOTIN() 
-                    case "UAIBOTINO":
-                         irArribaConUAIBOTIN() 
-            elif event.key == pygame.K_DOWN:
-                match personajeActual:
-                    case "UAIBOT":    
-                        irAbajoConUAIBOT()
-                    case "UAIBOTA":
-                         irAbajoConUAIBOTA() 
-                    case "UAIBOTINA":
-                         irAbajoConUAIBOTIN()  
-                    case "UAIBOTINO":
-                         irAbajoConUAIBOTIN()  
-            elif event.key == pygame.K_r: 
+
+            personaje.mover(block = virusTotal)
+
+            if event.key == pygame.K_r: 
                 resetearJuego()
             elif event.key == pygame.K_e:
                 match personajeActual:
@@ -782,6 +635,11 @@ while not salirJuego:
         
         x = pygame.time.get_ticks() / 40  % 400
         y = int(math.sin(x/25.0) * 50 + 160)
+
+        dt = reloj.tick() / 1000
+
+        personaje.dibujar()
+        virusTotal.update()
         
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
