@@ -28,3 +28,7 @@ Jugador1
 7
 Jugador1
 18
+Jugador1
+25
+Jugador1
+12

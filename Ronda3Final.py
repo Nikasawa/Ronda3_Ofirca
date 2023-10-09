@@ -209,36 +209,45 @@ class jugador(pygame.sprite.Sprite):
     def SaltarVertical(self, simbolo, lista):
 
         if not eval(str(self.y) + simbolo + '1') == 9:
-            if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
-
-                lista[self.y][self.x] = 0
-                self.y = eval(str(self.y) + simbolo + '2')
-
-            elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
+            if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
                 
                 lista[self.y][self.x] = 0
-                self.y = eval(str(self.y) + simbolo + '1')  
+                self.y = eval(str(self.y) + simbolo + '1') 
+
+            else:
+
+                if eval(str(self.y) + simbolo + '2') < 9:
+
+                    if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
+
+
+                        lista[self.y][self.x] = 0
+                        self.y = eval(str(self.y) + simbolo + '2')
+
+             
     
     def SaltarHorizontal(self, simbolo, lista):
 
         if not eval(str(self.x) + simbolo + '1') == 9:
-            
-            if eval(str(self.x) + simbolo + '2') > 9:
 
-                if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
-
-
-                    lista[self.y][self.x] = 0
-                    self.x = eval(str(self.x) + simbolo + '2')
-
-            elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
+            if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
                     
                 lista[self.y][self.x] = 0
-                self.x = eval(str(self.x) + simbolo + '1')   
-                  
+                self.x = eval(str(self.x) + simbolo + '1')
+
+            else:
+
+                if eval(str(self.x) + simbolo + '2') < 9:
+
+                    if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+
+
+                        lista[self.y][self.x] = 0
+                        self.x = eval(str(self.x) + simbolo + '2')
+
     #------------>Personaje: 3. Empujar Bloques<-------------#
     def EmpujarVertical(self, simbolo, lista):
 
