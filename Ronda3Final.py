@@ -363,8 +363,6 @@ class jugador(pygame.sprite.Sprite):
                         case "UAIBOTINO":
                             self.SaltarHorizontal('-', lista)
             
-            
-        
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
@@ -609,7 +607,6 @@ def dibujarPorcentajeDeMovimientos():
 def dibujarZonaDeTransporte(zona):
 
     global avatarRect
-    
     # Los For arrancan a contar desde el 1 ya que despues se multiplican con los las coordenadas
     # Si arrancaran en 0, se dibujarian pegados a los bordes de la pantalla
 
@@ -638,9 +635,6 @@ def dibujarTodo(zona):
     dibujarCartelIndicadorRonda()
     dibujarReglas()
     dibujarRanking()
-
-
-#dibujarTodo()
 
 def estaSolucionado(zona):
 
@@ -936,6 +930,11 @@ def definirMapa():
                         [1, 1, 0, 0, 0, 1, 0, 4, 1],
                         [1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
+    global indexX, indexY
+
+    indexX = 0
+    indexY = 1
+
     crearMapa.clearMapa()
     crearMapa.definirForma()
 
@@ -943,21 +942,19 @@ def definirMapa():
     sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
     sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
 
-
     crearMapa.agregar(sala1, 1)
     crearMapa.agregar(sala2, 0)
     crearMapa.agregar(sala3, 1)
+    
+    personaje.reiniciar()
 
     for indexYmap in crearMapa.salas:
         for habitacionActual in indexYmap:
             if habitacionActual.salaActual:
-                break
+                return habitacionActual
 
-    personaje.reiniciar()
 
-    dibujarZonaDeTransporte(habitacionActual.posBloques)
-
-def resetearJuego(zona):
+def resetearJuego():
 
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
@@ -977,7 +974,6 @@ def resetearJuego(zona):
     cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
 
     ticksAlComenzar=pygame.time.get_ticks()
-    dibujarTodo(zona)
 
 def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file = open("ranking.txt", "a")
@@ -1033,8 +1029,7 @@ while not salirJuego:
                         imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOT"
 
-            personaje.mover(bool = habitacionActual.salidas, robot = personajeActual, lista = habitacionActual.posBloques)
-                                 
+            personaje.mover(bool = habitacionActual.salidas, robot = personajeActual, lista = habitacionActual.posBloques) 
               
         virusQueSeMueveRect.left = virusQueSeMueveRect.left - 1
         
@@ -1059,23 +1054,6 @@ while not salirJuego:
     
     dt = reloj.tick() / 1000
 
-    if boolCambioSala == True:
-
-        for numy, y in enumerate(habitacionActual.posBloques):
-            for numx, x in enumerate(y):
-                if habitacionActual.posBloques[numy][numx] == 3:
-                    habitacionActual.posBloques[numy][numx] = 1
-
-        habitacionActual.salaActual = False
-        habitacionActual = crearMapa.SeleccionarSala(indexY, indexX)
-        habitacionActual.salaActual = True
-
-        boolCambioSala = False
-
-    crearMapa.dibujarMapa()
-    
-    
-
     # Bool que busca si quedaron virus en el mapa, por defecto esta en True (Diciendo que no hay)
     boolNoHayVirus = True
 
@@ -1094,8 +1072,21 @@ while not salirJuego:
         estaSolucionado(habitacionActual.posBloques)
 
     if segundosRestantes <= 0 or virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect) or cantidadDeMovimientosRestantes <= 1:
-        definirMapa()
-        resetearJuego(habitacionActual.posBloques)
+        habitacionActual = definirMapa()
+        resetearJuego()
+
+    if boolCambioSala == True:
+
+        for numy, y in enumerate(habitacionActual.posBloques):
+            for numx, x in enumerate(y):
+                if habitacionActual.posBloques[numy][numx] == 3:
+                    habitacionActual.posBloques[numy][numx] = 1
+
+        habitacionActual.salaActual = False
+        habitacionActual = crearMapa.SeleccionarSala(indexY, indexX)
+        habitacionActual.salaActual = True
+
+        boolCambioSala = False
         
     if (virusQueSeMueveRect.left < cantPixelesPorLadoCasilla):
         virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
