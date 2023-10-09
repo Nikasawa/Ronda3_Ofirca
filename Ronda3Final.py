@@ -49,7 +49,7 @@ personajeActual='UAIBOT'
 tiempoParaSolucionarElNivel=55
 cantidadDeMovimientosActual=0
 cantidadDeMovimientosRestantes=10
-colorVerde,colorAzul,colorBlanco,colorNegro, colorNaranja, colorBordeaux= (11,102,35),(0,0,255),(255,255,255),(0,0,0),(239,27,126),(102,41,53)
+colorVerde,colorAzul,colorBlanco,colorNegro, colorNaranja, colorBordeaux= (11,102,35), (0,0,255), (255,255,255), (0,0,0), (239,27,126), (102,41,53)
 cantidadDeCasillasPorLado=8 # Debe ser número par ya que la zona es un cuadrado
 cantPixelesPorLadoCasilla=64
 salirJuego = False
@@ -95,19 +95,6 @@ def dibujarFondo():
 def hayAreaProtegidaEn(x,y):
     punto=(x,y)
     return lstAreaProtegida.__contains__(punto)
-
-def posicionarElemento(elemento,x,y): 
-    global zonaDeTransporte
-    global avatarRect
-    zonaDeTransporte[x][y]=elemento
-    if (elemento=='jugador'):
-        r=pygame.Rect(cantPixelesPorLadoCasilla * (x),cantPixelesPorLadoCasilla * (y),cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla)
-        avatarRect=r
-
-def borrarElemento(x,y):
-    global zonaDeTransporte
-    zonaDeTransporte[x][y]=0
-
 
 def actualizarContadorDeMovimientos(num):
     global cantidadDeMovimientosActual
@@ -164,32 +151,6 @@ class jugador(pygame.sprite.Sprite):
         self.x = 2
         self.y = 5
         
-        self.cambioSala = False
-        """
-        # Esto es para probar el cambio de 'salas', ahora solo cambia de color la pantalla
-
-        # si llega a uno de los dos extremos de la pantalla y tiene una habitacion al costado, pasa a esa sala (el mapa cambia de color y se posiciona al otro extremo de la pantalla), 
-        # si no, 
-        # choca contra la pared (su posicion se establece al mayor rango que tiene, para dar la ilusion de un limite)
-
-        if self.rect.right >= pantalla.get_width():
-
-            if signo == '+' and 'derecha' in bool:
-                self.rect.left = 0
-                self.cambioSala = True
-                indexHorizontal += 1
-            else:
-                self.rect.right = pantalla.get_width()
-
-        if  self.rect.left <= 0:
-
-            if signo == '-' and 'izquierda' in bool:
-                self.rect.right = pantalla.get_width()
-                self.cambioSala = True
-                indexHorizontal -= 1
-            else:
-                self.rect.left = 0"""
-        
      #------------>Personaje: 1. Arrastrar Bloques<-------------#
     # Utilidad de las siguientes 4 funciones:  
     # Revisa si en la direccion contraria a la que se va a mover (Ej: Si se mueve para arriba, mira la casilla de abajo), tiene un virus para mover
@@ -215,18 +176,21 @@ class jugador(pygame.sprite.Sprite):
             
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
         
+        # Cada tanto da algunos errores con los resultados de la posicion en X y en Y ya que se salen del rango en index de la lista
         if eval(str(self.x) + simbolo + '1') < 9:
 
             if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-                if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
+                if eval(str(self.x) + opuesto + '1') < 9:
 
-                    lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
-                    lista[self.y][self.x] = 4
+                    if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
 
-                else:
+                        lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
+                        lista[self.y][self.x] = 4
 
-                    lista[self.y][self.x] = 0
+                    else:
+
+                        lista[self.y][self.x] = 0
 
                 self.x = eval(str(self.x) + simbolo + '1')
 
@@ -262,10 +226,11 @@ class jugador(pygame.sprite.Sprite):
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')   
                   
+    #------------>Personaje: 3. Empujar Bloques<-------------#
     def EmpujarVertical(self, simbolo, lista):
 
         if eval(str(self.y) + simbolo + '1') < 9:
-            if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
+            if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
 
                 lista[self.y][self.x] = 0
@@ -329,7 +294,7 @@ class jugador(pygame.sprite.Sprite):
             if 'abajo' in bool and self.y == 8:
                 lista[self.y][self.x] = 0
                 indexY += 1
-                self.y = 0
+                self.y = 1
                 boolCambioSala = True
             
 
@@ -371,8 +336,6 @@ class jugador(pygame.sprite.Sprite):
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
-        lista[4][2] = 6
-        lista[6][2] = 6
         lista[self.y][self.x] = 3
 
 
@@ -451,11 +414,16 @@ class mapa:
 
 class habitacion:
 
-    def __init__(self, posBloques = [], salaActual = False, salidas = []):
+    def __init__(self, posZonaSeguras = [[]], posBloques = [], salaActual = False, salidas = []):
 
+        self.posZonaSeguras = posZonaSeguras
         self.posBloques = posBloques
         self.salaActual = salaActual
         self.salidas = salidas
+
+    def colocarZonaSegura(self):
+        for y in self.posZonaSeguras:
+            self.posBloques[y[0]][y[1]] = 6
 
     def get_Salidas(self):
         return self.salidas
@@ -481,7 +449,7 @@ zonaDeTransporte1[posYjugador][posXjugador] = 3
 
 zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
                     [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 4, 0, 0, 0, 1],
                     [1, 1, 0, 0, 0, 0, 0, 0, 1],
                     [1, 1, 0, 0, 0, 0, 0, 0, 1],
                     [1, 1, 0, 0, 0, 0, 0, 0, 1],
@@ -496,12 +464,12 @@ zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
                     [0, 0, 0, 0, 0, 0, 0, 0, 1],
                     [1, 1, 0, 0, 0, 1, 0, 0, 1],
                     [1, 1, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 4, 1],
                     [1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-sala1 = habitacion(zonaDeTransporte1, True, ['arriba', 'derecha'])
-sala2 = habitacion(zonaDeTransporte2, False, ['abajo'])
-sala3 = habitacion(zonaDeTransporte3, False, ['izquierda'])
+sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
+sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
+sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
 
 crearMapa.agregar(sala1, 1)
 crearMapa.agregar(sala2, 0)
@@ -685,9 +653,9 @@ def dibujarZonaDeTransporte(zona):
     pygame.draw.rect(pantalla, colorBlanco, [cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla],1)       
     
 
-def dibujarTodo():
+def dibujarTodo(zona):
     dibujarFondo()
-    dibujarZonaDeTransporte(zonaDeTransporte)
+    dibujarZonaDeTransporte(zona)
     dibujarCartelIndicadorRonda()
     dibujarReglas()
     dibujarRanking()
@@ -695,7 +663,7 @@ def dibujarTodo():
 
 #dibujarTodo()
 
-def estaSolucionado():
+def estaSolucionado(zona):
 
     global nivelCompletado
     global zonaDeTransporte
@@ -704,7 +672,7 @@ def estaSolucionado():
 
     nivelCompletado = True
 
-    for y in zonaDeTransporte:
+    for y in zona:
         if 6 in y:
             cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
 
@@ -715,7 +683,7 @@ def estaSolucionado():
 
     dibujarCartelIndicadorRonda()
     dibujarReglas()
-    escribirMovimientosEnArchivo()
+    escribirMovimientosEnArchivo(zona)
     dibujarPorcentajeDeMovimientos()
 
 ###################################### Clases #######################################################
@@ -908,7 +876,7 @@ class Input(pygame.sprite.Sprite):
 
 ################################################ Fin clases #############################################
 
-def resetearJuego():
+def resetearJuego(zona):
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
 
@@ -927,7 +895,7 @@ def resetearJuego():
     cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
 
     ticksAlComenzar=pygame.time.get_ticks()
-    dibujarTodo()
+    dibujarTodo(zona)
 
 def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file = open("ranking.txt", "a")
@@ -937,18 +905,18 @@ def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file.write('\n')
     file.close()
 
-def escribirMovimientosEnArchivo():
+def escribirMovimientosEnArchivo(zona):
     global cantidadDeMovimientosActual, nivelCompletado, nombreJugador
 
     if (nivelCompletado==True):
         escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
-        resetearJuego()
+        resetearJuego(zona)
 
-def estaSinMovimientos():
+def estaSinMovimientos(zona):
 
     global cantidadDeMovimientosRestantes
     if (nivelCompletado==False) and (cantidadDeMovimientosRestantes<=0):
-        resetearJuego()
+        resetearJuego(zona)
 
 dibujarZonaDeTransporte(habitacionActual.posBloques)
 
@@ -975,8 +943,8 @@ while not salirJuego:
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
 
-            #estaSolucionado()
-            #estaSinMovimientos()
+            estaSolucionado(habitacionActual.posBloques)
+            estaSinMovimientos(habitacionActual.posBloques)
 
             if event.key == pygame.K_r: 
                 print(habitacionActual)
@@ -1016,6 +984,7 @@ while not salirJuego:
     pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
     pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top)) 
 
+    habitacionActual.colocarZonaSegura()
     habitacionActual.posBloques[personaje.y][personaje.x] = 3
     dibujarZonaDeTransporte(habitacionActual.posBloques)
     
@@ -1037,6 +1006,22 @@ while not salirJuego:
     crearMapa.dibujarMapa()
     
     pygame.display.flip()
+
+    # Bool que busca si quedaron virus en el mapa, por defecto esta en True (Diciendo que no hay)
+    boolNoHayVirus = True
+
+    # Son muchos for... Despues veo como reducirlos, pasa que son muchos arrays.
+    # Busca en el mapa, y en este, cada habitacion que tiene para buscar virus.
+    # Si encuentra alguno: La bool anterior se corrije, impidiendo que se gane el juego
+    for capaz in crearMapa.salas:
+        for habitaciones in capaz:
+            for listaY in habitaciones.posBloques:
+                if 4 in listaY: # Se encontro un virus en le mapa, lo que quiere decir que el juego no termino
+                    boolNoHayVirus = False
+
+    # Si no se encontro un virus y la bool se mantuvo en True: El jugador gano.
+    if boolNoHayVirus == True:
+        print('Ganaste')
 
     if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect):
         resetearJuego()

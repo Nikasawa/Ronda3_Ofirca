@@ -14,3 +14,9 @@ qsy
 17
 Jugador1
 22
+Jugador1
+11
+Jugador1
+12
+Jugador1
+22
