@@ -152,26 +152,28 @@ def actualizarContadorDeMovimientos(num):
     if cantidadDeMovimientosRestantes<0:
         cantidadDeMovimientosRestantes=0
     
-    ancho=350
-    alto=30
-    x=75+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
-    y=cantPixelesPorLadoCasilla*5
-    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
-    textoPasos = tipografiaGrande.render('Cantidad de movimientos: ' + str(cantidadDeMovimientosActual), False, colorBlanco)
-    pantalla.blit(textoPasos,(x+5,y,ancho,alto))    
-   
-    y=cantPixelesPorLadoCasilla*6 
-    pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho + 32,alto))
-    textoMovimientosRestantes = tipografiaGrande.render('Cantidad de movimientos restantes: ' + str(cantidadDeMovimientosRestantes), False, colorBlanco)
-    pantalla.blit(textoMovimientosRestantes,(x+5,y,ancho,alto))
+def dibujarContadorMov():
+        
+        ancho=350
+        alto=30
+        x=75+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
+        y=cantPixelesPorLadoCasilla*5
+        pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
+        textoPasos = tipografiaGrande.render('Cantidad de movimientos: ' + str(cantidadDeMovimientosActual), False, colorBlanco)
+        pantalla.blit(textoPasos,(x+5,y,ancho,alto))    
+    
+        y=cantPixelesPorLadoCasilla*6 
+        pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho + 32,alto))
+        textoMovimientosRestantes = tipografiaGrande.render('Cantidad de movimientos restantes: ' + str(cantidadDeMovimientosRestantes), False, colorBlanco)
+        pantalla.blit(textoMovimientosRestantes,(x+5,y,ancho,alto))
 
-    calculoPorcentajeMovimientos = round((100 * cantidadDeMovimientosRestantes)/cantidadDeMovimientosDeterminada) 
-    textoPorcentaje = tipografiaGrande.render(str(calculoPorcentajeMovimientos) + ' %', False, colorBlanco)
-    y=cantPixelesPorLadoCasilla*6+32
-    pygame.draw.rect(pantalla,colorAzul,(x,y,200,alto))
-    pygame.draw.rect(pantalla,colorNaranja,(x,y,calculoPorcentajeMovimientos*2,alto))
+        calculoPorcentajeMovimientos = round((100 * cantidadDeMovimientosRestantes)/cantidadDeMovimientosDeterminada) 
+        textoPorcentaje = tipografiaGrande.render(str(calculoPorcentajeMovimientos) + ' %', False, colorBlanco)
+        y=cantPixelesPorLadoCasilla*6+32
+        pygame.draw.rect(pantalla,colorAzul,(x,y,200,alto))
+        pygame.draw.rect(pantalla,colorNaranja,(x,y,calculoPorcentajeMovimientos*2,alto))
 
-    pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
+        pantalla.blit(textoPorcentaje,(x,y,ancho,alto))
 
     
 # Clase del jugador
@@ -229,11 +231,14 @@ class jugador(pygame.sprite.Sprite):
     # Si NO lo es, limpia solo la posicion que tenia el jugador antes de moverse
 
     def ArrastrarVertical(self, simbolo, opuesto, lista):
+        global contMovUAIBOTA
         
         if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
-                
-            if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
 
+            contMovUAIBOTA += 1
+            actualizarContadorDeMovimientos(1)
+
+            if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
 
                 lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
                 lista[self.y][self.x] = 4
@@ -245,13 +250,15 @@ class jugador(pygame.sprite.Sprite):
             self.y = eval(str(self.y) + simbolo + '1')
         
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
+        global contMovUAIBOTA
             
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-
+            contMovUAIBOTA += 1
+            actualizarContadorDeMovimientos(1)
+            
             if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
 
-                    
                 lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
                 lista[self.y][self.x] = 4
 
@@ -264,37 +271,49 @@ class jugador(pygame.sprite.Sprite):
     #------------>Personaje: 2. Saltar Bloques<-------------#
 
     def SaltarVertical(self, simbolo, lista):
+        global contMovUAIBOTINA
 
         if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
-
+            
+            contMovUAIBOTINA += 1
+            actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '2')
 
         elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
+            contMovUAIBOTINA += 1
+            actualizarContadorDeMovimientos(1)
             
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')  
     
     def SaltarHorizontal(self, simbolo, lista):
+        global contMovUAIBOTINA
 
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
 
+            contMovUAIBOTINA += 1
+            actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '2')
 
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
+            contMovUAIBOTINA += 1
+            actualizarContadorDeMovimientos(1)
                 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '1')   
                   
     def EmpujarVertical(self, simbolo, lista):
+        global contMovUAIBOT
 
         if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
 
+            contMovUAIBOT += 1
 
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')
@@ -302,19 +321,28 @@ class jugador(pygame.sprite.Sprite):
             
         elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
-
+            contMovUAIBOT += 1
+            actualizarContadorDeMovimientos(1)
+            
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')
         
     def EmpujarHorizontal(self, simbolo, lista):
+        global contMovUAIBOT
 
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
             
+            contMovUAIBOT += 1
+            actualizarContadorDeMovimientos(1)
+
             lista[self.y][self.x] = 0
             lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
             self.x = eval(str(self.x) + simbolo + '1')
             
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
+
+            contMovUAIBOT += 1
+            actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
             self.x = eval(str(self.x) + simbolo + '1')
@@ -380,9 +408,7 @@ class jugador(pygame.sprite.Sprite):
                         self.SaltarHorizontal('-', lista)
                     case "UAIBOTINO":
                         self.SaltarHorizontal('-', lista)
-            
-        
-        actualizarContadorDeMovimientos(1)
+
         lista[4][2] = 6
         lista[6][2] = 6
         lista[self.y][self.x] = 3
@@ -436,22 +462,6 @@ class pared(pygame.sprite.Sprite):
     def update(self):
 
         pantalla.blit(imgPared, (self.rect.left, self.rect.top)) 
-
-# Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
-# Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
-virusGrupo = pygame.sprite.Group()
-paredGrupo = pygame.sprite.Group()
-
-for numY, y in enumerate(zonaDeTransporte):
-    for numX, x in enumerate(y): 
-
-        if y[numX] == 3:
-            personaje = jugador(numX * 64, numY * 64, 64, 64)
-        #if y[numX] == 2:
-        #    virusGrupo.add(virus(numX * 64, numY * 64))
-        #if y[numX] == 1:
-        #   paredGrupo.add(pared(numX * 64, numY * 64))
-
 
 def dibujarReglas():
 
@@ -627,29 +637,6 @@ def dibujarTodo():
 
 #dibujarTodo()
 
-def estaSolucionado():
-
-    global nivelCompletado
-    global zonaDeTransporte
-
-    cantVirusSobreAreasProtegidas=0
-
-    nivelCompletado = True
-
-    for y in zonaDeTransporte:
-        if 6 in y:
-            cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
-
-    if cantVirusSobreAreasProtegidas > 0:
-        nivelCompletado = False
-    else:
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
-
-    dibujarCartelIndicadorRonda()
-    dibujarReglas()
-    escribirMovimientosEnArchivo()
-    dibujarPorcentajeDeMovimientos()
-
 ###################################### Clases #######################################################
 # Empiezo a programar la clase del virus sinosuidal
 class Sinosuidal:
@@ -759,7 +746,6 @@ class Textos:
         self.text_rect = self.text.get_rect(center=(self.posy, self.posx))
         pantalla.blit(self.text2, self.text_rect)
         pantalla.blit(self.text, self.text_rect)
-        pygame.display.update()
 
 #Clase de boton
 class Button():
@@ -816,7 +802,6 @@ class Input(pygame.sprite.Sprite):
         self.image.blit(t_surf, (5, 5))
         pygame.draw.rect(self.image, self.txtColor, self.image.get_rect().inflate(-2, -2), 2)
         self.rect = self.image.get_rect(topleft = self.pos)
-        pygame.display.flip()
 
     def update(self):
         if event.type == pygame.MOUSEBUTTONDOWN and not self.activo:
@@ -839,13 +824,19 @@ class Input(pygame.sprite.Sprite):
         self.mostrarTexto()
 
 ################################################ Fin clases #############################################
-
 def resetearJuego():
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
     global jugando
 
     jugando = False
+    inputNombre.redefinir()
+    inputMov.redefinir()
+
+    personaje.x = 2
+    personaje.y = 5
+
+    botonInicio.presionado = False
 
     contMovUAIBOT=0
     contMovUAIBOTA=0
@@ -880,13 +871,37 @@ def escribirMovimientosEnArchivo():
         escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
         resetearJuego()
 
-def estaSinMovimientos():
 
+def estaSolucionado():
+
+    global nivelCompletado
+    global zonaDeTransporte 
+
+    cantVirusSobreAreasProtegidas=0
+
+    nivelCompletado = True
+
+    for y in zonaDeTransporte:
+        if 6 in y:
+            cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
+
+    if cantVirusSobreAreasProtegidas > 0:
+        nivelCompletado = False
+    else:
+        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
+
+    dibujarCartelIndicadorRonda()
+    dibujarReglas()
+    escribirMovimientosEnArchivo()
+    dibujarPorcentajeDeMovimientos()
+
+def estaSinMovimientos():
     global cantidadDeMovimientosRestantes
+
     if (nivelCompletado==False) and (cantidadDeMovimientosRestantes<=0):
         resetearJuego()
 
-#Declaraciones de objetos
+######################## Declaraciones de objetos ##################################
 
 virusSinosuidal = Sinosuidal(random.choice(listaVirus)) 
 #Declaraciones botones
@@ -902,6 +917,22 @@ grupo2 = pygame.sprite.Group(inputMov)
 #Texto descriptivo de inputs
 txtInputNombre = Textos()
 txtInputMov = Textos()
+
+virusGrupo = pygame.sprite.Group()
+paredGrupo = pygame.sprite.Group()
+
+for numY, y in enumerate(zonaDeTransporte):
+    for numX, x in enumerate(y): 
+
+        if y[numX] == 3:
+            personaje = jugador(numX * 64, numY * 64, 64, 64)
+        #if y[numX] == 2:
+        #    virusGrupo.add(virus(numX * 64, numY * 64))
+        #if y[numX] == 1:
+        #   paredGrupo.add(pared(numX * 64, numY * 64))
+
+
+######################################################################################
 
 while not salirJuego:
 
@@ -930,7 +961,7 @@ while not salirJuego:
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
 
     #=================================================================================#
-    #                              Deteccion de botones                               # 
+    #                         Deteccion de acciones propias                           #
 
         #Deteccion de eventos de inputs
         if(jugando == False):
@@ -984,6 +1015,7 @@ while not salirJuego:
                     botonLegacy.CambiarContenido("Legacy")
                     botonLegacy.imagen = button_surface_legacy
         
+        #Deteccion de click sobre virus
         if event.type == pygame.MOUSEBUTTONDOWN:
 
             if posXmouse >= virusSinosuidal.marca.left and posXmouse <= virusSinosuidal.marca.right and posYmouse >= virusSinosuidal.marca.top and posYmouse <= virusSinosuidal.marca.bottom:
@@ -1001,11 +1033,11 @@ while not salirJuego:
 
         if event.type == pygame.KEYDOWN and jugando == True:
             
-            #estaSolucionado()
-            #estaSinMovimientos()
+            estaSolucionado()
+            estaSinMovimientos()
 
             if event.key == pygame.K_r: 
-                print(zonaDeTransporte)
+                resetearJuego()
 
             elif event.key == pygame.K_e:
                 match personajeActual:
@@ -1061,6 +1093,7 @@ while not salirJuego:
         actualizarTiempoDeJuegoActual() 
         actualizarTiempoRestante()
 
+        dibujarContadorMov()
         dibujarZonaDeTransporte(zonaDeTransporte)
         dibujarPorcentajeDeMovimientos()
         dibujarRanking()
@@ -1091,6 +1124,7 @@ while not salirJuego:
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
             
+    #                              Fin codigo propio                                  #
     #=================================================================================#
 
     dt = reloj.tick() / 1000
