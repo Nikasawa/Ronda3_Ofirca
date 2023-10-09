@@ -39,6 +39,20 @@ button_surface_classic = pygame.transform.scale(button_surface_classic, (150, 50
 
 button_surface_legacy = pygame.image.load("assets/img/classic/classic-mode.png")
 button_surface_legacy = pygame.transform.scale(button_surface_legacy, (150, 50))
+
+# -----> Declaraciones de sonidos <-----#
+sonidoExplosion = pygame.mixer.Sound("assets/sounds/explosion.wav")
+sonidoInicio = pygame.mixer.Sound("assets/sounds/startUp.wav")
+sonidoCaptura = pygame.mixer.Sound("assets/sounds/success.wav")
+sonidoBoton = pygame.mixer.Sound("assets/sounds/boton.wav")
+sonidoMover = pygame.mixer.Sound("assets/sounds/movimiento.wav")
+sonidoSalto = pygame.mixer.Sound("assets/sounds/salto.wav")
+sonidoMuerte = pygame.mixer.Sound("assets/sounds/muerte.wav")
+sonidoMovVirus = pygame.mixer.Sound("assets/sounds/moverVirus.wav")
+sonidoActualizar = pygame.mixer.Sound("assets/sounds/Actualizar.wav")
+sonidoElimVirus = pygame.mixer.Sound("assets/sounds/EliminarVirus.wav")
+sonidoEscribir = pygame.mixer.Sound("assets/sounds/escribir.wav")
+
 # -----> Variables Ofirca <-----#
 
 global ticksAlComenzar
@@ -239,11 +253,13 @@ class jugador(pygame.sprite.Sprite):
 
             if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
 
+                pygame.mixer.Sound.play(sonidoMovVirus)
                 lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
                 lista[self.y][self.x] = 4
                 
             else:
                 
+                pygame.mixer.Sound.play(sonidoMover)
                 lista[self.y][self.x] = 0
 
             self.y = eval(str(self.y) + simbolo + '1')
@@ -258,11 +274,13 @@ class jugador(pygame.sprite.Sprite):
             
             if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
 
+                pygame.mixer.Sound.play(sonidoMovVirus)
                 lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
                 lista[self.y][self.x] = 4
 
             else:
-
+                
+                pygame.mixer.Sound.play(sonidoMover)
                 lista[self.y][self.x] = 0
 
             self.x = eval(str(self.x) + simbolo + '1')
@@ -275,6 +293,7 @@ class jugador(pygame.sprite.Sprite):
         if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
             
             contMovUAIBOTINA += 1
+            pygame.mixer.Sound.play(sonidoSalto)
             actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
@@ -283,6 +302,7 @@ class jugador(pygame.sprite.Sprite):
         elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
             contMovUAIBOTINA += 1
+            pygame.mixer.Sound.play(sonidoMover)
             actualizarContadorDeMovimientos(1)
             
             lista[self.y][self.x] = 0
@@ -294,6 +314,7 @@ class jugador(pygame.sprite.Sprite):
         if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
 
             contMovUAIBOTINA += 1
+            pygame.mixer.Sound.play(sonidoSalto)
             actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
@@ -302,6 +323,7 @@ class jugador(pygame.sprite.Sprite):
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
             contMovUAIBOTINA += 1
+            pygame.mixer.Sound.play(sonidoMover)
             actualizarContadorDeMovimientos(1)
                 
             lista[self.y][self.x] = 0
@@ -313,6 +335,8 @@ class jugador(pygame.sprite.Sprite):
         if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
 
             contMovUAIBOT += 1
+            pygame.mixer.Sound.play(sonidoMovVirus)
+            actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
             self.y = eval(str(self.y) + simbolo + '1')
@@ -321,6 +345,7 @@ class jugador(pygame.sprite.Sprite):
         elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
             contMovUAIBOT += 1
+            pygame.mixer.Sound.play(sonidoMover)
             actualizarContadorDeMovimientos(1)
             
             lista[self.y][self.x] = 0
@@ -333,6 +358,7 @@ class jugador(pygame.sprite.Sprite):
             
             contMovUAIBOT += 1
             actualizarContadorDeMovimientos(1)
+            pygame.mixer.Sound.play(sonidoMovVirus)
 
             lista[self.y][self.x] = 0
             lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
@@ -341,6 +367,7 @@ class jugador(pygame.sprite.Sprite):
         elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
             contMovUAIBOT += 1
+            pygame.mixer.Sound.play(sonidoMover)
             actualizarContadorDeMovimientos(1)
 
             lista[self.y][self.x] = 0
@@ -350,8 +377,6 @@ class jugador(pygame.sprite.Sprite):
         
         if pygame.key.get_pressed()[pygame.K_w]:
             
-            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
-
             match robot:
                     case "UAIBOT":
                         self.EmpujarVertical('-', lista)
@@ -365,11 +390,8 @@ class jugador(pygame.sprite.Sprite):
 
         if pygame.key.get_pressed()[pygame.K_s]:
             
-            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
-
             match personajeActual:
                     case "UAIBOT":
-
                         self.EmpujarVertical('+', lista)
                     case "UAIBOTA":
                         self.ArrastrarVertical('+', '-', lista)
@@ -381,8 +403,6 @@ class jugador(pygame.sprite.Sprite):
 
         if pygame.key.get_pressed()[pygame.K_d]:
             
-            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
-
             match personajeActual:
                     case "UAIBOT":
                         self.EmpujarHorizontal('+', lista)
@@ -395,8 +415,6 @@ class jugador(pygame.sprite.Sprite):
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
-
-            pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
 
             match personajeActual:
                     case "UAIBOT":
@@ -816,6 +834,7 @@ class Input(pygame.sprite.Sprite):
                     pass
             else:
                 self.text += event.unicode
+                pygame.mixer.Sound.play(sonidoEscribir)
             self.mostrarTexto()
             
     def redefinir(self):
@@ -831,9 +850,6 @@ def resetearJuego():
     jugando = False
     inputNombre.redefinir()
     inputMov.redefinir()
-
-    personaje.x = 2
-    personaje.y = 5
 
     botonInicio.presionado = False
 
@@ -851,6 +867,9 @@ def resetearJuego():
     cantidadDeMovimientosActual=0
 
     cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
+
+    personaje.x = 2
+    personaje.y = 5
 
     ticksAlComenzar=pygame.time.get_ticks()
     dibujarTodo()
@@ -980,6 +999,8 @@ while not salirJuego:
                 if(botonInicio.DetectarInput(pygame.mouse.get_pos())):
                     botonInicio.presionado = not(botonInicio.presionado)
 
+                    pygame.mixer.Sound.play(sonidoBoton)
+
                     #Variables para trackear estado de juego
                     jugando = True
 
@@ -1005,6 +1026,9 @@ while not salirJuego:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if(botonLegacy.DetectarInput(pygame.mouse.get_pos())):
                 botonLegacy.presionado = not(botonLegacy.presionado)
+
+                pygame.mixer.Sound.play(sonidoBoton)
+
                 legacy = not(legacy) 
 
                 if(legacy == False):
@@ -1031,9 +1055,6 @@ while not salirJuego:
     #=================================================================================#
 
         if event.type == pygame.KEYDOWN and jugando == True:
-            
-            estaSolucionado()
-            estaSinMovimientos()
 
             if event.key == pygame.K_r: 
                 resetearJuego()
@@ -1076,6 +1097,8 @@ while not salirJuego:
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
 
+        estaSolucionado()
+        estaSinMovimientos()
     #=================================================================================#
     #                                Codigo propio                                    #
                      
