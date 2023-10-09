@@ -1077,12 +1077,6 @@ while not salirJuego:
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
 
-        miraRect.center=(pygame.mouse.get_pos())
-        rectanguloDeZonaDeTransporte=pygame.Rect(cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2),cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2))
-        
-        if miraRect.colliderect(rectanguloDeZonaDeTransporte) and jugando == True:
-            pantalla.blit(imgMira, (miraRect.left, miraRect.top))    
-
     #=================================================================================#
     #                                Codigo propio                                    #
                      
@@ -1127,6 +1121,12 @@ while not salirJuego:
     #                              Fin codigo propio                                  #
     #=================================================================================#
 
+    miraRect.center=(pygame.mouse.get_pos())
+    rectanguloDeZonaDeTransporte=pygame.Rect(cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla*2,cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2),cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado-2))
+    
+    if miraRect.colliderect(rectanguloDeZonaDeTransporte) and jugando == True:
+        pantalla.blit(imgMira, (miraRect.left, miraRect.top))    
+        
     dt = reloj.tick() / 1000
     
     virusGrupo.update(personaje.rect)
