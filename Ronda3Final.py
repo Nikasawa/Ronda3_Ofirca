@@ -904,8 +904,6 @@ def estaSolucionado():
     else:
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
 
-    dibujarCartelIndicadorRonda()
-    dibujarReglas()
     escribirMovimientosEnArchivo()
     dibujarPorcentajeDeMovimientos()
 
@@ -1107,6 +1105,7 @@ while not salirJuego:
 
         estaSolucionado()
         estaSinMovimientos()
+
     #=================================================================================#
     #                                Codigo propio                                    #
                      
@@ -1117,6 +1116,9 @@ while not salirJuego:
         actualizarTiempoDeJuegoActual() 
         actualizarTiempoRestante()
 
+        dibujarCartelIndicadorRonda()
+        dibujarReglas()
+        
         dibujarContadorMov()
         dibujarZonaDeTransporte(zonaDeTransporte)
         dibujarPorcentajeDeMovimientos()
