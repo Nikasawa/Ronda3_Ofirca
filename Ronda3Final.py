@@ -16,7 +16,6 @@ tipografiaGrande=pygame.font.SysFont('Arial', 24)
 # -----> Variables Nuestras <-----#
 
 reloj = pygame.time.Clock()
-dt = 0
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 jugando = False
 
@@ -639,7 +638,7 @@ def dibujarTodo():
 
 ###################################### Clases #######################################################
 # Empiezo a programar la clase del virus sinosuidal
-class Sinosuidal:
+class Sinusoidal:
 
     def __init__(self, sprite):
 
@@ -717,7 +716,7 @@ class Sinosuidal:
 
 # El atributo de sprite es un string, pero en realidad la clase
 # todavia no usa ningun parametro mas que self.
-virusSinosuidal = Sinosuidal(random.choice(listaVirus)) 
+virusSinosuidal = Sinusoidal(random.choice(listaVirus)) 
 # Funciones para reestablecer las variables a su valor inicial. Funciones que corroboran si se cumplen condiciones de derrota o victoria.
 
 #Clase de textos
@@ -858,7 +857,7 @@ def resetearJuego():
 
 def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file = open("ranking.txt", "a")
-    file.write(inputNombre.text)
+    file.write(str(inputNombre.text))
     file.write('\n')
     file.write(str(cantMovimientosUtilizados))
     file.write('\n')
@@ -903,7 +902,7 @@ def estaSinMovimientos():
 
 ######################## Declaraciones de objetos ##################################
 
-virusSinosuidal = Sinosuidal(random.choice(listaVirus)) 
+virusSinosuidal = Sinusoidal(random.choice(listaVirus)) 
 #Declaraciones botones
 botonInicio = Button(button_surface, 790, 265, "Iniciar juego", False)
 #Boton de cambio sprite
@@ -1127,7 +1126,9 @@ while not salirJuego:
     if miraRect.colliderect(rectanguloDeZonaDeTransporte) and jugando == True:
         pantalla.blit(imgMira, (miraRect.left, miraRect.top))    
         
-    dt = reloj.tick() / 1000
+    #Reloj interno
+    reloj.tick(60)
+    dt = reloj.tick(60) / 1000
     
     virusGrupo.update(personaje.rect)
     paredGrupo.update()
