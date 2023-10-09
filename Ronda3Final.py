@@ -93,6 +93,8 @@ imgVirus=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))
 imgVirusQueSeMueve=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 imgVirusSinusoidal=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 
+imgFondo = pygame.image.load("assets/img/general/titulo.png")
+
 # Colision de la mira
 miraRect=imgMira.get_rect()
 
@@ -108,8 +110,7 @@ virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado
 #cantidadDeMovimientosDeterminada=int(input("Ingresa la cantidad máxima de movimientos: "))
 
 def dibujarFondo():
-    fondo = pygame.image.load("assets/img/classic/fondo.png")
-    pantalla.blit(fondo, (0, 0))
+    pantalla.blit(imgFondo, (0, 0))
 
 #region tablero
 def crearZonaDeTransporte():
@@ -841,13 +842,15 @@ class Input(pygame.sprite.Sprite):
 def resetearJuego():
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
-    global jugando
+    global jugando, imgFondo
 
     jugando = False
     inputNombre.redefinir()
     inputMov.redefinir()
 
     botonInicio.presionado = False
+
+    imgFondo = pygame.image.load("assets/img/general/titulo.png")
 
     contMovUAIBOT=0
     contMovUAIBOTA=0
@@ -906,6 +909,48 @@ def estaSolucionado():
 
     escribirMovimientosEnArchivo()
     dibujarPorcentajeDeMovimientos()
+
+def EventoInicio():
+    global cantidadDeMovimientosRestantes, cantidadDeMovimientosDeterminada
+    global nombreJugador, jugando, personajeActual
+    global imgAreaProtegida, imgAvatar, imgPared, imgVirus, imgVirusQueSeMueve, imgFondo, imgMira
+    pygame.mixer.Sound.play(sonidoBoton)
+
+    nombreJugador=str(inputNombre.text)
+    
+    #Verifica el input de movimientos
+    try:
+        cantidadDeMovimientosRestantes = int(inputMov.text) 
+        cantidadDeMovimientosDeterminada= int(inputMov.text) 
+    except:
+        cantidadDeMovimientosRestantes = 0
+        cantidadDeMovimientosDeterminada= 1
+
+    #Variables para trackear estado de juego
+    jugando = True
+
+    if(legacy == False):
+        listaVirus = listaVirus3
+        imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/classic/areaprotegida.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOTA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+        imgPared=pygame.transform.scale(pygame.image.load("assets/img/classic/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla)) 
+        imgFondo = pygame.image.load("assets/img/classic/fondo.png")
+        imgMira=pygame.transform.scale(pygame.image.load("assets/img/classic/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+            
+    if(legacy == True):
+        listaVirus = listaVirus2
+        imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/legacy/zonaSegura.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/legacy/robot2.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+        imgPared=pygame.transform.scale(pygame.image.load("assets/img/legacy/Block1.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+        imgFondo = pygame.image.load("assets/img/legacy/fondo.png")
+        imgMira=pygame.transform.scale(pygame.image.load("assets/img/legacy/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+
+    personajeActual="UAIBOTA"
+
+    #Redefine sprites de virus al inicar juego
+    virusSinosuidal.sprite = random.choice(listaVirus)
+    imgVirus=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
+    imgVirusQueSeMueve=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 
 def estaSinMovimientos():
     global cantidadDeMovimientosRestantes
@@ -992,41 +1037,8 @@ while not salirJuego:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if(botonInicio.DetectarInput(pygame.mouse.get_pos())):
                     botonInicio.presionado = not(botonInicio.presionado)
+                    EventoInicio()
 
-                    pygame.mixer.Sound.play(sonidoBoton)
-
-                    nombreJugador=str(inputNombre.text)
-                    
-                    #Verifica el input de movimientos
-                    try:
-                        cantidadDeMovimientosRestantes = int(inputMov.text) 
-                        cantidadDeMovimientosDeterminada= int(inputMov.text) 
-                        cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
-                    except:
-                        cantidadDeMovimientosRestantes = 1
-                        cantidadDeMovimientosDeterminada= 1
-                        cantidadDeMovimientosRestantes=0
-
-                    #Variables para trackear estado de juego
-                    jugando = True
-
-                    if(legacy == False):
-                        listaVirus = listaVirus3
-                        imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/classic/areaprotegida.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/classic/UAIBOTA.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-                        imgPared=pygame.transform.scale(pygame.image.load("assets/img/classic/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla)) 
-                         
-                    if(legacy == True):
-                        listaVirus = listaVirus2
-                        imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/legacy/zonaSegura.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-                        imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/legacy/robot2.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-                        imgPared=pygame.transform.scale(pygame.image.load("assets/img/legacy/Block1.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
-                    personajeActual="UAIBOTA"
-
-                    #Redefine sprites de virus al inicar juego
-                    virusSinosuidal.sprite = random.choice(listaVirus)
-                    imgVirus=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
-                    imgVirusQueSeMueve=pygame.transform.scale(pygame.image.load(str(random.choice(listaVirus))), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 
         #Deteccion de boton Legacy
         if event.type == pygame.MOUSEBUTTONDOWN:
