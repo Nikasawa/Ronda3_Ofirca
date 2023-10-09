@@ -15,6 +15,13 @@ tipografiaGrande=pygame.font.SysFont('Arial', 24)
 
 # -----> Variables Nuestras <-----#
 
+global habitacionActual
+global personaje
+global crearMapa
+global sala1
+global sala2
+global sala3
+
 reloj = pygame.time.Clock()
 dt = 0
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
@@ -22,7 +29,6 @@ movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 posXjugador = 2
 posYjugador = 5
 
-zonaActual = 0
 zonaDeTransporte2 = 0
 
 indexX = 0
@@ -280,7 +286,7 @@ class jugador(pygame.sprite.Sprite):
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
 
-    def mover(self, pared, virus, robot, bool = [], lista = []):
+    def mover(self, robot, bool = [], lista = []):
         
         global zonaActual, zonaDeTransporte, zonaDeTransporte2, indexY, indexX, boolCambioSala
 
@@ -363,6 +369,11 @@ class jugador(pygame.sprite.Sprite):
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
 
+    def reiniciar(self):
+        
+        self.y = 5
+        self.x = 2
+
 
 class virus(pygame.sprite.Sprite):
 
@@ -422,14 +433,19 @@ class mapa:
         self.salas = salas
         
         self.cantCapas = 3 # Elige la cantidad de capas (Valor de Y en index de lista) Por ahora lo hago en un valor fijo
-        self.salas = [[] for filas in range(totalSalas) for columnas in range(totalCapaz)]
 
     def agregar(self, sala, indexYmapa):
         self.salas[indexYmapa].append(sala)
+    def definirForma(self):
+        self.salas = [[] for filas in range(self.totalSalas) for columnas in range(self.totalCapaz)]
+        
 
     def SeleccionarSala(self, indexYmapa, indexXmapa):
         return self.salas[indexYmapa][indexXmapa]
     
+    def clearMapa(self):
+        self.salas = []
+
     def dibujarMapa(self):
 
         esquinaDerecha = pantalla.get_width() - cantPixelesPorLadoCasilla
@@ -452,68 +468,6 @@ class habitacion:
 
     def get_Salidas(self):
         return self.salidas
-
-# Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
-# Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
-
-crearMapa = mapa(2, 2)
-
-# ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
-
-zonaDeTransporte1 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 0, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 6, 0, 5, 0, 0, 0, 0],
-                    [1, 1, 3, 0, 4, 1, 0, 0, 1],
-                    [1, 1, 6, 0, 0, 4, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
-
-zonaDeTransporte1[posYjugador][posXjugador] = 3
-
-zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 4, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 1, 1, 0, 1, 1, 1, 1]]
-
-zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
-                    [1, 1, 0, 0, 0, 1, 0, 4, 1],
-                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
-
-sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
-sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
-sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
-
-crearMapa.agregar(sala1, 1)
-crearMapa.agregar(sala2, 0)
-crearMapa.agregar(sala3, 1)
-
-virusGrupo = pygame.sprite.Group()
-paredGrupo = pygame.sprite.Group()
-
-for indexYmap in crearMapa.salas:
-    for habitacionActual in indexYmap:
-        if habitacionActual.salaActual:
-            break
-
-for numY, y in enumerate(habitacionActual.posBloques):
-    for numX, x in enumerate(y):
-        if x == 3:
-            personaje = jugador(64 * numX, 64 * numY, 64, 64)
-
-
 
 def dibujarReglas():
 
@@ -690,21 +644,7 @@ def dibujarTodo(zona):
 
 def estaSolucionado(zona):
 
-    global nivelCompletado
-    global zonaDeTransporte
-
-    cantVirusSobreAreasProtegidas=0
-
-    nivelCompletado = True
-
-    for y in zona:
-        if 6 in y:
-            cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
-
-    if cantVirusSobreAreasProtegidas > 0:
-        nivelCompletado = False
-    else:
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
+    pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
 
     dibujarCartelIndicadorRonda()
     dibujarReglas()
@@ -901,7 +841,124 @@ class Input(pygame.sprite.Sprite):
 
 ################################################ Fin clases #############################################
 
+# Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
+# Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
+
+crearMapa = mapa(2, 2)
+crearMapa.definirForma()
+
+# ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
+
+zonaDeTransporte1 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 6, 0, 5, 0, 0, 0, 0],
+                    [1, 1, 3, 0, 4, 1, 0, 0, 1],
+                    [1, 1, 6, 0, 0, 4, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+zonaDeTransporte1[posYjugador][posXjugador] = 3
+
+zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 4, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0, 1, 1, 1, 1]]
+
+zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 4, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
+sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
+sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
+
+crearMapa.agregar(sala1, 1)
+crearMapa.agregar(sala2, 0)
+crearMapa.agregar(sala3, 1)
+
+
+for indexYmap in crearMapa.salas:
+    for habitacionActual in indexYmap:
+        if habitacionActual.salaActual:
+            break
+
+for numY, y in enumerate(habitacionActual.posBloques):
+    for numX, x in enumerate(y):
+        if x == 3:
+            personaje = jugador(64 * numX, 64 * numY, 64, 64)
+
+def definirMapa():
+
+    # ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
+
+    zonaDeTransporte1 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 0, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 6, 0, 5, 0, 0, 0, 0],
+                        [1, 1, 3, 0, 4, 1, 0, 0, 1],
+                        [1, 1, 6, 0, 0, 4, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+    zonaDeTransporte1[posYjugador][posXjugador] = 3
+
+    zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 4, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 0, 1, 1, 1, 1]]
+
+    zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 4, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+    crearMapa.clearMapa()
+    crearMapa.definirForma()
+
+    sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
+    sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
+    sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
+
+
+    crearMapa.agregar(sala1, 1)
+    crearMapa.agregar(sala2, 0)
+    crearMapa.agregar(sala3, 1)
+
+    for indexYmap in crearMapa.salas:
+        for habitacionActual in indexYmap:
+            if habitacionActual.salaActual:
+                break
+
+    personaje.reiniciar()
+
+    dibujarZonaDeTransporte(habitacionActual.posBloques)
+
 def resetearJuego(zona):
+
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
 
@@ -931,27 +988,17 @@ def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file.close()
 
 def escribirMovimientosEnArchivo(zona):
+
     global cantidadDeMovimientosActual, nivelCompletado, nombreJugador
+    escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
+    resetearJuego(zona)
 
-    if (nivelCompletado==True):
-        escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
-        resetearJuego(zona)
-
-def estaSinMovimientos(zona):
-
-    global cantidadDeMovimientosRestantes
-    if (nivelCompletado==False) and (cantidadDeMovimientosRestantes<=0):
-        resetearJuego(zona)
-
-dibujarZonaDeTransporte(habitacionActual.posBloques)
+definirMapa()
 
 while not salirJuego:
 
     segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
     segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
-
-    if (segundosRestantes<=0):
-       resetearJuego()
 
     dibujarFondo()
     
@@ -968,11 +1015,8 @@ while not salirJuego:
                 virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
         if event.type == pygame.KEYDOWN:
 
-            estaSolucionado(habitacionActual.posBloques)
-            estaSinMovimientos(habitacionActual.posBloques)
-
             if event.key == pygame.K_r: 
-                print(habitacionActual)
+                print(cantidadDeMovimientosRestantes)
 
             elif event.key == pygame.K_e:
                 match personajeActual:
@@ -989,7 +1033,7 @@ while not salirJuego:
                         imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/UAIBOT.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
                         personajeActual="UAIBOT"
 
-            personaje.mover(pared = paredGrupo, virus = virusGrupo, bool = habitacionActual.salidas, robot = personajeActual, lista = habitacionActual.posBloques)
+            personaje.mover(bool = habitacionActual.salidas, robot = personajeActual, lista = habitacionActual.posBloques)
                                  
               
         virusQueSeMueveRect.left = virusQueSeMueveRect.left - 1
@@ -1030,7 +1074,7 @@ while not salirJuego:
 
     crearMapa.dibujarMapa()
     
-    pygame.display.flip()
+    
 
     # Bool que busca si quedaron virus en el mapa, por defecto esta en True (Diciendo que no hay)
     boolNoHayVirus = True
@@ -1046,12 +1090,16 @@ while not salirJuego:
 
     # Si no se encontro un virus y la bool se mantuvo en True: El jugador gano.
     if boolNoHayVirus == True:
-        print('Ganaste')
+        definirMapa()
+        estaSolucionado(habitacionActual.posBloques)
 
-    if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect):
-        resetearJuego()
+    if segundosRestantes <= 0 or virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect) or cantidadDeMovimientosRestantes <= 1:
+        definirMapa()
+        resetearJuego(habitacionActual.posBloques)
         
     if (virusQueSeMueveRect.left < cantPixelesPorLadoCasilla):
         virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
+
+    pygame.display.flip()
          
 pygame.quit()
