@@ -104,12 +104,8 @@ virusSinusoidalRect = imgVirusSinusoidal.get_rect()
 virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
 virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
-nombreJugador="Jugador1"
-cantidadDeMovimientosRestantes=30
-cantidadDeMovimientosDeterminada=30 
 #nombreJugador=input("Ingresa tu nombre: ")
 #cantidadDeMovimientosDeterminada=int(input("Ingresa la cantidad máxima de movimientos: "))
-cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
 
 def dibujarFondo():
     fondo = pygame.image.load("assets/img/classic/fondo.png")
@@ -1000,6 +996,18 @@ while not salirJuego:
                     botonInicio.presionado = not(botonInicio.presionado)
 
                     pygame.mixer.Sound.play(sonidoBoton)
+
+                    nombreJugador=str(inputNombre.text)
+                    
+                    #Verifica el input de movimientos
+                    try:
+                        cantidadDeMovimientosRestantes = int(inputMov.text) 
+                        cantidadDeMovimientosDeterminada= int(inputMov.text) 
+                        cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
+                    except:
+                        cantidadDeMovimientosRestantes = 1
+                        cantidadDeMovimientosDeterminada= 1
+                        cantidadDeMovimientosRestantes=0
 
                     #Variables para trackear estado de juego
                     jugando = True
