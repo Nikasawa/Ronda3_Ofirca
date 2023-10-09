@@ -161,22 +161,28 @@ class jugador(pygame.sprite.Sprite):
         
         if eval(str(self.y) + simbolo + '1') < 9:
             if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
-                    
-                if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
+                
+                if eval(str(self.y) + opuesto + '1') < 9:
 
+                    if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
 
-                    lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
-                    lista[self.y][self.x] = 4
+                        lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
+                        lista[self.y][self.x] = 4
                     
+                    else:
+                    
+                        lista[self.y][self.x] = 0
+                
                 else:
-                    
-                    lista[self.y][self.x] = 0
+
+                    lista[self.y][self.x] = 0 
 
                 self.y = eval(str(self.y) + simbolo + '1')
             
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
         
         # Cada tanto da algunos errores con los resultados de la posicion en X y en Y ya que se salen del rango en index de la lista
+        # Se soluciono solo (?
         if eval(str(self.x) + simbolo + '1') < 9:
 
             if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
@@ -192,13 +198,17 @@ class jugador(pygame.sprite.Sprite):
 
                         lista[self.y][self.x] = 0
 
+                else:
+
+                    lista[self.y][self.x] = 0
+
                 self.x = eval(str(self.x) + simbolo + '1')
 
     #------------>Personaje: 2. Saltar Bloques<-------------#
 
     def SaltarVertical(self, simbolo, lista):
 
-        if eval(str(self.y) + simbolo + '2') < 9:
+        if not eval(str(self.y) + simbolo + '1') == 9:
             if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
 
@@ -213,12 +223,15 @@ class jugador(pygame.sprite.Sprite):
     
     def SaltarHorizontal(self, simbolo, lista):
 
-        if eval(str(self.x) + simbolo + '2') < 9:
-            if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+        if not eval(str(self.x) + simbolo + '1') == 9:
+            
+            if eval(str(self.x) + simbolo + '2') > 9:
+
+                if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
 
 
-                lista[self.y][self.x] = 0
-                self.x = eval(str(self.x) + simbolo + '2')
+                    lista[self.y][self.x] = 0
+                    self.x = eval(str(self.x) + simbolo + '2')
 
             elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
@@ -245,7 +258,8 @@ class jugador(pygame.sprite.Sprite):
         
     def EmpujarHorizontal(self, simbolo, lista):
 
-        if eval(str(self.x) + simbolo + '2') < 10:
+        if eval(str(self.x) + simbolo + '1') < 9:
+            
             if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
                 
                 lista[self.y][self.x] = 0
@@ -262,77 +276,79 @@ class jugador(pygame.sprite.Sprite):
         global zonaActual, zonaDeTransporte, zonaDeTransporte2, indexY, indexX, boolCambioSala
 
         if pygame.key.get_pressed()[pygame.K_w]:
-            
-            match robot:
-                    case "UAIBOT":
-                        self.EmpujarVertical('-', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarVertical('-', '+', lista)
-                    case "UAIBOTINA":
-                        self.SaltarVertical('-', lista)
-                    case "UAIBOTINO":
-                        self.SaltarVertical('-', lista)
 
             if 'arriba' in bool and self.y == 1:
                 lista[self.y][self.x] = 0
                 indexY -= 1
                 self.y = 8
                 boolCambioSala = True
+            else:
+                match robot:
+                        case "UAIBOT":
+                            self.EmpujarVertical('-', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarVertical('-', '+', lista)
+                        case "UAIBOTINA":
+                            self.SaltarVertical('-', lista)
+                        case "UAIBOTINO":
+                            self.SaltarVertical('-', lista)
 
         if pygame.key.get_pressed()[pygame.K_s]:
-
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarVertical('+', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarVertical('+', '-', lista)
-                    case "UAIBOTINA":
-                        self.SaltarVertical('+', lista)
-                    case "UAIBOTINO":
-                        self.SaltarVertical('+', lista)
 
             if 'abajo' in bool and self.y == 8:
                 lista[self.y][self.x] = 0
                 indexY += 1
                 self.y = 1
                 boolCambioSala = True
-            
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarVertical('+', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarVertical('+', '-', lista)
+                        case "UAIBOTINA":
+                            self.SaltarVertical('+', lista)
+                        case "UAIBOTINO":
+                            self.SaltarVertical('+', lista)
 
         if pygame.key.get_pressed()[pygame.K_d]:
-             
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarHorizontal('+', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarHorizontal('+', '-', lista)
-                    case "UAIBOTINA":
-                        self.SaltarHorizontal('+', lista)
-                    case "UAIBOTINO":
-                        self.SaltarHorizontal('+', lista)
 
             if 'derecha' in bool and self.x == 8:
                 lista[self.y][self.x] = 0
                 indexX += 1
                 self.x = 1
                 boolCambioSala = True
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarHorizontal('+', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarHorizontal('+', '-', lista)
+                        case "UAIBOTINA":
+                            self.SaltarHorizontal('+', lista)
+                        case "UAIBOTINO":
+                            self.SaltarHorizontal('+', lista)
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarHorizontal('-', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarHorizontal('-', '+', lista)
-                    case "UAIBOTINA":
-                        self.SaltarHorizontal('-', lista)
-                    case "UAIBOTINO":
-                        self.SaltarHorizontal('-', lista)
-            
+
             if 'izquierda' in bool and self.x == 1:
                 lista[self.y][self.x] = 0
                 indexX -= 1
                 self.x = 8
                 boolCambioSala = True
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarHorizontal('-', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarHorizontal('-', '+', lista)
+                        case "UAIBOTINA":
+                            self.SaltarHorizontal('-', lista)
+                        case "UAIBOTINO":
+                            self.SaltarHorizontal('-', lista)
+            
+            
         
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
