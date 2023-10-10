@@ -589,8 +589,7 @@ def dibujarCartelIndicadorRonda():
     y=5
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     pantalla.blit(textoFelicitacion,(x+5,y,ancho,alto))
-    
-#Quien carajo tuvo la idea de hacer este nombre tan largo?????????????????
+
 def obtenerDelArchivo5ConMenosMovimientos():
   file = open("ranking.txt", "r")
   lstMovimientos=[]
@@ -886,7 +885,6 @@ class Input(pygame.sprite.Sprite):
             elif event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
                 if (self.text == ""):
-                    #Hacer la funcion cagada de nuevo o cambiar la condicion 
                     #dibujarMenu()
                     pass
             else:
