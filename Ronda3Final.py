@@ -216,8 +216,11 @@ class jugador(pygame.sprite.Sprite):
                     lista[self.y][self.x] = 0 
 
                 self.y = eval(str(self.y) + simbolo + '1')
+                contMovUAIBOTA += 1
+                actualizarContadorDeMovimientos(1)
             
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
+        global contMovUAIBOTA
         
         # Cada tanto da algunos errores con los resultados de la posicion en X y en Y ya que se salen del rango en index de la lista
         # Se soluciono solo (?
@@ -241,6 +244,8 @@ class jugador(pygame.sprite.Sprite):
                     lista[self.y][self.x] = 0
 
                 self.x = eval(str(self.x) + simbolo + '1')
+                contMovUAIBOTA += 1
+                actualizarContadorDeMovimientos(1)
 
     #------------>Personaje: 2. Saltar Bloques<-------------#
 
@@ -251,6 +256,9 @@ class jugador(pygame.sprite.Sprite):
 
             if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
+                contMovUAIBOTINA += 1
+                pygame.mixer.Sound.play(sonidoSalto)
+                actualizarContadorDeMovimientos(1)
                 
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1') 
@@ -274,6 +282,9 @@ class jugador(pygame.sprite.Sprite):
 
             if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
+                contMovUAIBOTINA += 1
+                pygame.mixer.Sound.play(sonidoSalto)
+                actualizarContadorDeMovimientos(1)
                     
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
@@ -298,10 +309,6 @@ class jugador(pygame.sprite.Sprite):
         if eval(str(self.y) + simbolo + '1') < 9:
             if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
-                contMovUAIBOT += 1
-                pygame.mixer.Sound.play(sonidoMovVirus)
-                actualizarContadorDeMovimientos(1)
-
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1')
                 lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
@@ -310,6 +317,10 @@ class jugador(pygame.sprite.Sprite):
 
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1')
+            
+            contMovUAIBOT += 1
+            pygame.mixer.Sound.play(sonidoMovVirus)
+            actualizarContadorDeMovimientos(1)
         
     def EmpujarHorizontal(self, simbolo, lista):
         global contMovUAIBOT
@@ -326,6 +337,9 @@ class jugador(pygame.sprite.Sprite):
 
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
+            
+            contMovUAIBOTA += 1
+            actualizarContadorDeMovimientos(1)
 
     def mover(self, robot, bool = [], lista = []):
         
@@ -404,7 +418,6 @@ class jugador(pygame.sprite.Sprite):
                         case "UAIBOTINO":
                             self.SaltarHorizontal('-', lista)
             
-        actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
         self.rect.left = self.x * 64
