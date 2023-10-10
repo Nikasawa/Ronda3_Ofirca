@@ -4,6 +4,7 @@
 import math
 import pygame
 import random
+import time
 
 pygame.init()
 pygame.font.init() 
@@ -21,7 +22,7 @@ global crearMapa
 global sala1
 global sala2
 global sala3
-
+global tiempo_inicial
 reloj = pygame.time.Clock()
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 jugando = False
@@ -712,7 +713,9 @@ class Sinusoidal(pygame.sprite.Sprite):
 
         # Condiciones para la funcion de dibujo
         # Se va a empezar a usar cuando se agrege la funcionalidad de la mira
+        self.timeInicial = time.time()
         self.spawnBool = True
+        self.contador = 5
         
     def establecerMov(self):
             
@@ -761,12 +764,20 @@ class Sinusoidal(pygame.sprite.Sprite):
         elif self.rect.top > 512:
             self.rect.top = 512
 
-    def dibujarVirus(self, tiempo):
-        # pygame.draw.rect(pantalla, 'red', [self.marca.left, self.marca.top, 64, 64])
+    def dibujarVirus(self):
+        # pygame.draw.rect(pantalla, 'red', [self.marca.left, self.marca.top, 64, 64]
+
+        self.tiempoRespawn = time.time()
+
+        if self.timeInicial + self.contador <= self.tiempoRespawn and not self.spawnBool: 
+            self.contador += 1
+            self.spawnBool = True
+        elif self.spawnBool:
+            self.timeInicial = time.time()
 
         # De momento es un cuadrado, despues le agrego un sprite.
         # Mas tarde agregar Collider
-        if self.spawnBool or tiempo >= 250:
+        if self.spawnBool:
             self.spawnBool = True
             pantalla.blit(pygame.transform.scale(pygame.image.load(self.sprite), (64, 64)), (self.rect.left, self.rect.top))
 
@@ -1073,6 +1084,8 @@ def EventoInicio():
     global imgAreaProtegida, imgAvatar, imgPared, imgVirus, imgVirusQueSeMueve, imgFondo, imgMira, imgParedAlternativa
     pygame.mixer.Sound.play(sonidoBoton)
 
+    tiempo_inicial = time.time()
+
     nombreJugador=str(inputNombre.text)
     
     #Verifica el input de movimientos
@@ -1340,7 +1353,7 @@ while not salirJuego:
             virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
             
         virusSinosuidal.movVirus()    
-        virusSinosuidal.dibujarVirus(spawnSinosuidal)
+        virusSinosuidal.dibujarVirus()
 
         if virusSinosuidal.rect.colliderect(personaje.rect):
             boolCambioSala = True
