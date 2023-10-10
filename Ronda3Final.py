@@ -117,10 +117,6 @@ virusQueSeMueveRect = imgVirusQueSeMueve.get_rect()
 virusQueSeMueveRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
 virusQueSeMueveRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
-virusSinusoidalRect = imgVirusSinusoidal.get_rect()
-virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
-virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
-
 #nombreJugador=input("Ingresa tu nombre: ")
 #cantidadDeMovimientosDeterminada=int(input("Ingresa la cantidad máxima de movimientos: "))
 
@@ -217,8 +213,11 @@ class jugador(pygame.sprite.Sprite):
                     lista[self.y][self.x] = 0 
 
                 self.y = eval(str(self.y) + simbolo + '1')
+                contMovUAIBOTA += 1
+                actualizarContadorDeMovimientos(1)
             
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
+        global contMovUAIBOTA
         
         # Cada tanto da algunos errores con los resultados de la posicion en X y en Y ya que se salen del rango en index de la lista
         # Se soluciono solo (?
@@ -242,6 +241,8 @@ class jugador(pygame.sprite.Sprite):
                     lista[self.y][self.x] = 0
 
                 self.x = eval(str(self.x) + simbolo + '1')
+                contMovUAIBOTA += 1
+                actualizarContadorDeMovimientos(1)
 
     #------------>Personaje: 2. Saltar Bloques<-------------#
 
@@ -252,6 +253,9 @@ class jugador(pygame.sprite.Sprite):
 
             if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
+                contMovUAIBOTINA += 1
+                pygame.mixer.Sound.play(sonidoSalto)
+                actualizarContadorDeMovimientos(1)
                 
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1') 
@@ -275,6 +279,9 @@ class jugador(pygame.sprite.Sprite):
 
             if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
+                contMovUAIBOTINA += 1
+                pygame.mixer.Sound.play(sonidoSalto)
+                actualizarContadorDeMovimientos(1)
                     
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
@@ -299,10 +306,6 @@ class jugador(pygame.sprite.Sprite):
         if eval(str(self.y) + simbolo + '1') < 9:
             if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
-                contMovUAIBOT += 1
-                pygame.mixer.Sound.play(sonidoMovVirus)
-                actualizarContadorDeMovimientos(1)
-
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1')
                 lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
@@ -311,6 +314,10 @@ class jugador(pygame.sprite.Sprite):
 
                 lista[self.y][self.x] = 0
                 self.y = eval(str(self.y) + simbolo + '1')
+            
+            contMovUAIBOT += 1
+            pygame.mixer.Sound.play(sonidoMovVirus)
+            actualizarContadorDeMovimientos(1)
         
     def EmpujarHorizontal(self, simbolo, lista):
         global contMovUAIBOT
@@ -327,6 +334,9 @@ class jugador(pygame.sprite.Sprite):
 
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
+            
+            contMovUAIBOT += 1
+            actualizarContadorDeMovimientos(1)
 
     def mover(self, robot, bool = [], lista = []):
         
@@ -405,7 +415,6 @@ class jugador(pygame.sprite.Sprite):
                         case "UAIBOTINO":
                             self.SaltarHorizontal('-', lista)
             
-        actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
 
@@ -1001,14 +1010,16 @@ def definirMapa():
 
 def resetearJuego():
 
-    global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
+    global cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
-    global jugando, imgFondo
+    global jugando, imgFondo, nivelCompletado
 
     jugando = False
     inputMov.redefinir()
 
     definirMapa()
+
+    nivelCompletado = False
 
     botonInicio.presionado = False
 
@@ -1020,9 +1031,6 @@ def resetearJuego():
 
     virusQueSeMueveRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
     virusQueSeMueveRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
-           
-    virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
-    virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
     cantidadDeMovimientosActual=0
 
@@ -1273,9 +1281,6 @@ while not salirJuego:
         x = pygame.time.get_ticks() / 40  % 400
         y = int(math.sin(x/25.0) * 50 + 160)
 
-        virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
-        virusSinusoidalRect.top=y
-
         if(jugando == True):
             estaSolucionado(habitacionActual.posBloques)
             estaSinMovimientos()
@@ -1319,6 +1324,7 @@ while not salirJuego:
 
         # Si no se encontro un virus y la bool se mantuvo en True: El jugador gano.
         if boolNoHayVirus == True:
+            nivelCompletado = True
             boolCambioSala = True
             definirMapa()
             estaSolucionado(habitacionActual.posBloques)
@@ -1374,7 +1380,7 @@ while not salirJuego:
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
 
-    if virusQueSeMueveRect.colliderect(personaje.rect) or virusSinusoidalRect.colliderect(personaje.rect) and jugando == True:
+    if virusQueSeMueveRect.colliderect(personaje.rect) and jugando == True:
         boolCambioSala = True
         resetearJuego()
 
