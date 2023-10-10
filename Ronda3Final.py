@@ -5,6 +5,9 @@ import math
 import pygame
 import random
 
+# Libreria MoviePy
+from moviepy.editor import *
+
 pygame.init()
 pygame.font.init() 
 pygame.mixer.music.load("assets/sounds/paseNivel.wav") 
@@ -13,11 +16,15 @@ pantalla= pygame.display.set_mode((1152,648))
 tipografia = pygame.font.SysFont('Arial', 18)
 tipografiaGrande=pygame.font.SysFont('Arial', 24)
 
+# Declaracion video Introduccion
+clip = VideoFileClip("assets/video/introduccion2.mp4")
+
 # -----> Variables Nuestras <-----#
 
 reloj = pygame.time.Clock()
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 jugando = False
+nivelCompletado = False
 
 spawnSinosuidal = 0
 cantSinosuidalAsesinado = 0
@@ -60,7 +67,6 @@ global cantidadDeMovimientosRestantes
 global cantidadDeMovimientosActual
 global zonaDeTransporte
 global avatarRect
-global nivelCompletado
 
 contMovUAIBOT=0
 contMovUAIBOTA=0
@@ -575,7 +581,8 @@ def dibujarRanking():
     alto=40
     x=75+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
     i=8
-     
+          
+
     for par in lst5Jugadores:
         y=(32*i)-135
         textoRanking = tipografiaGrande.render(str(par[0]) + ': ' + str(par[1]), False, colorBlanco)
@@ -994,6 +1001,9 @@ for numY, y in enumerate(zonaDeTransporte):
 
 ######################################################################################
 
+#Reproduce la introduccion
+clip.preview()
+
 while not salirJuego:
 
     segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
@@ -1165,10 +1175,7 @@ while not salirJuego:
         if(legacy == False):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"blue","black")
         if(legacy == True):
-            botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
-
-    if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect) and jugando == True:
-        resetearJuego()
+            botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white") 
             
     #                              Fin codigo propio                                  #
     #=================================================================================#
