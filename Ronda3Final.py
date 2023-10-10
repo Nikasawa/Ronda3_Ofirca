@@ -41,6 +41,9 @@ legacy = False
 button_surface = pygame.image.load("assets/img/classic/boton.png")
 button_surface = pygame.transform.scale(button_surface, (150, 50))
 
+button_surface2 = pygame.image.load("assets/img/classic/kill-sin.png")
+button_surface2 = pygame.transform.scale(button_surface2, (150, 50))
+
 button_surface_classic = pygame.image.load("assets/img/legacy/legacy-mode.png")
 button_surface_classic = pygame.transform.scale(button_surface_classic, (150, 50))
 
@@ -1123,6 +1126,8 @@ virusSinosuidal = Sinusoidal(random.choice(listaVirus))
 botonInicio = Button(button_surface, 790, 265, "Iniciar juego", False)
 #Boton de cambio sprite
 botonLegacy = Button(button_surface, 1060, 610, "Classic", False)
+#Boton de matar sinusoidal
+botonSinusoidal = Button(button_surface2, 900, 610, "Eliminar Sinusoidal", False)
 #Inputs para nombre y movimientos
 inputNombre = Input(600, 120, 400, tipografia,colorNegro)
 inputMov = Input(600, 200, 400, tipografia,colorNegro)
@@ -1141,10 +1146,6 @@ for numY, y in enumerate(habitacionActual.posBloques):
 
         if y[numX] == 3:
             personaje = jugador(numX * 64, numY * 64, 64, 64)
-        #if y[numX] == 2:
-        #    virusGrupo.add(virus(numX * 64, numY * 64))
-        #if y[numX] == 1:
-        #   paredGrupo.add(pared(numX * 64, numY * 64))
 
 
 ######################################################################################
@@ -1211,7 +1212,13 @@ while not salirJuego:
                 if(legacy == True):
                     botonLegacy.CambiarContenido("Legacy")
                     botonLegacy.imagen = button_surface_legacy
-        
+        #Deteccion de boton Sinusoidal
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if(botonSinusoidal.DetectarInput(pygame.mouse.get_pos())):
+                botonSinusoidal.presionado = not(botonSinusoidal.presionado)
+                virusSinosuidal.spawnBool = False
+                virusSinosuidal.virusBool = True
+
         #Deteccion de click sobre virus
         if event.type == pygame.MOUSEBUTTONDOWN:
 
@@ -1340,7 +1347,10 @@ while not salirJuego:
             resetearJuego()
 
         pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top)) 
-
+    elif(jugando == False):
+        #Dibuja boton "sinusoidal"
+        botonSinusoidal.Actualizar()
+        botonSinusoidal.CambiarColorBoton(pygame.mouse.get_pos(),"red","white")
 
     ###########################################################################################
 
