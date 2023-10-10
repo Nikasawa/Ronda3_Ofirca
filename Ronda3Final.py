@@ -15,6 +15,13 @@ tipografiaGrande=pygame.font.SysFont('Arial', 24)
 
 # -----> Variables Nuestras <-----#
 
+global habitacionActual
+global personaje
+global crearMapa
+global sala1
+global sala2
+global sala3
+
 reloj = pygame.time.Clock()
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 jugando = False
@@ -52,6 +59,12 @@ sonidoMovVirus = pygame.mixer.Sound("assets/sounds/moverVirus.wav")
 sonidoActualizar = pygame.mixer.Sound("assets/sounds/Actualizar.wav")
 sonidoElimVirus = pygame.mixer.Sound("assets/sounds/EliminarVirus.wav")
 sonidoEscribir = pygame.mixer.Sound("assets/sounds/escribir.wav")
+zonaDeTransporte2 = 0
+
+indexX = 0
+indexY = 1
+
+boolCambioSala = False
 
 # -----> Variables Ofirca <-----#
 
@@ -61,6 +74,8 @@ global cantidadDeMovimientosActual
 global zonaDeTransporte
 global avatarRect
 global nivelCompletado
+
+nivelCompletado = False
 
 contMovUAIBOT=0
 contMovUAIBOTA=0
@@ -72,7 +87,7 @@ personajeActual='UAIBOT'
 tiempoParaSolucionarElNivel=55
 cantidadDeMovimientosActual=0
 cantidadDeMovimientosRestantes=10
-colorVerde,colorAzul,colorBlanco,colorNegro, colorNaranja, colorBordeaux= (11,102,35),(0,0,255),(255,255,255),(0,0,0),(239,27,126),(102,41,53)
+colorVerde,colorAzul,colorBlanco,colorNegro, colorNaranja, colorBordeaux= (11,102,35), (0,0,255), (255,255,255), (0,0,0), (239,27,126), (102,41,53)
 cantidadDeCasillasPorLado=8 # Debe ser número par ya que la zona es un cuadrado
 cantPixelesPorLadoCasilla=64
 salirJuego = False
@@ -111,44 +126,10 @@ virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado
 def dibujarFondo():
     pantalla.blit(imgFondo, (0, 0))
 
-#region tablero
-def crearZonaDeTransporte():
-
-    # ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
-
-    zonaDeTransporte = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [1, 1, 6, 0, 5, 0, 0, 0, 1],
-                        [1, 1, 0, 0, 4, 1, 0, 0, 1],
-                        [1, 1, 6, 0, 0, 4, 0, 0, 1],
-                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
-    
-    zonaDeTransporte[posYjugador][posXjugador] = 3
-    
-    return zonaDeTransporte
-
-zonaDeTransporte=crearZonaDeTransporte()
 
 def hayAreaProtegidaEn(x,y):
     punto=(x,y)
     return lstAreaProtegida.__contains__(punto)
-
-def posicionarElemento(elemento,x,y): 
-    global zonaDeTransporte
-    global avatarRect
-    zonaDeTransporte[x][y]=elemento
-    if (elemento=='jugador'):
-        r=pygame.Rect(cantPixelesPorLadoCasilla * (x),cantPixelesPorLadoCasilla * (y),cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla)
-        avatarRect=r
-
-def borrarElemento(x,y):
-    global zonaDeTransporte
-    zonaDeTransporte[x][y]=0
-
-#endregion
 
 def actualizarContadorDeMovimientos(num):
     global cantidadDeMovimientosActual
@@ -191,7 +172,7 @@ class jugador(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y, x, y):
         pygame.sprite.Sprite.__init__(self)
 
-        self.surface = pygame.Surface((x, y))
+        self.surface = pygame.Surface((64, 64))
         self.surface.fill('red')
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -207,32 +188,6 @@ class jugador(pygame.sprite.Sprite):
         self.x = 2
         self.y = 5
         
-        self.cambioSala = False
-        """
-        # Esto es para probar el cambio de 'salas', ahora solo cambia de color la pantalla
-
-        # si llega a uno de los dos extremos de la pantalla y tiene una habitacion al costado, pasa a esa sala (el mapa cambia de color y se posiciona al otro extremo de la pantalla), 
-        # si no, 
-        # choca contra la pared (su posicion se establece al mayor rango que tiene, para dar la ilusion de un limite)
-
-        if self.rect.right >= pantalla.get_width():
-
-            if signo == '+' and 'derecha' in bool:
-                self.rect.left = 0
-                self.cambioSala = True
-                indexHorizontal += 1
-            else:
-                self.rect.right = pantalla.get_width()
-
-        if  self.rect.left <= 0:
-
-            if signo == '-' and 'izquierda' in bool:
-                self.rect.right = pantalla.get_width()
-                self.cambioSala = True
-                indexHorizontal -= 1
-            else:
-                self.rect.left = 0"""
-        
      #------------>Personaje: 1. Arrastrar Bloques<-------------#
     # Utilidad de las siguientes 4 funciones:  
     # Revisa si en la direccion contraria a la que se va a mover (Ej: Si se mueve para arriba, mira la casilla de abajo), tiene un virus para mover
@@ -242,189 +197,223 @@ class jugador(pygame.sprite.Sprite):
     def ArrastrarVertical(self, simbolo, opuesto, lista):
         global contMovUAIBOTA
         
-        if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
-
-            contMovUAIBOTA += 1
-            actualizarContadorDeMovimientos(1)
-
-            if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
-
-                pygame.mixer.Sound.play(sonidoMovVirus)
-                lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
-                lista[self.y][self.x] = 4
+        if eval(str(self.y) + simbolo + '1') < 9:
+            if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
                 
-            else:
-                
-                pygame.mixer.Sound.play(sonidoMover)
-                lista[self.y][self.x] = 0
+                if eval(str(self.y) + opuesto + '1') < 9:
 
-            self.y = eval(str(self.y) + simbolo + '1')
-        
+                    if lista[eval(str(self.y) + opuesto + '1')][self.x] == 4:
+
+                        lista[eval(str(self.y) + opuesto + '1')][self.x] = 0
+                        lista[self.y][self.x] = 4
+                    
+                    else:
+                    
+                        lista[self.y][self.x] = 0
+                
+                else:
+
+                    lista[self.y][self.x] = 0 
+
+                self.y = eval(str(self.y) + simbolo + '1')
+            
     def ArrastrarHorizontal(self, simbolo, opuesto, lista):
-        global contMovUAIBOTA
-            
-        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
+        
+        # Cada tanto da algunos errores con los resultados de la posicion en X y en Y ya que se salen del rango en index de la lista
+        # Se soluciono solo (?
+        if eval(str(self.x) + simbolo + '1') < 9:
 
-            contMovUAIBOTA += 1
-            actualizarContadorDeMovimientos(1)
-            
-            if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
+            if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-                pygame.mixer.Sound.play(sonidoMovVirus)
-                lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
-                lista[self.y][self.x] = 4
+                if eval(str(self.x) + opuesto + '1') < 9:
 
-            else:
-                
-                pygame.mixer.Sound.play(sonidoMover)
-                lista[self.y][self.x] = 0
+                    if lista[self.y][eval(str(self.x) + opuesto + '1')] == 4:
 
-            self.x = eval(str(self.x) + simbolo + '1')
+                        lista[self.y][eval(str(self.x) + opuesto + '1')] = 0
+                        lista[self.y][self.x] = 4
+
+                    else:
+
+                        lista[self.y][self.x] = 0
+
+                else:
+
+                    lista[self.y][self.x] = 0
+
+                self.x = eval(str(self.x) + simbolo + '1')
 
     #------------>Personaje: 2. Saltar Bloques<-------------#
 
     def SaltarVertical(self, simbolo, lista):
         global contMovUAIBOTINA
 
-        if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
-            
-            contMovUAIBOTINA += 1
-            pygame.mixer.Sound.play(sonidoSalto)
-            actualizarContadorDeMovimientos(1)
+        if not eval(str(self.y) + simbolo + '1') == 9:
 
-            lista[self.y][self.x] = 0
-            self.y = eval(str(self.y) + simbolo + '2')
+            if lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
-        elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
+                
+                lista[self.y][self.x] = 0
+                self.y = eval(str(self.y) + simbolo + '1') 
 
-            contMovUAIBOTINA += 1
-            pygame.mixer.Sound.play(sonidoMover)
-            actualizarContadorDeMovimientos(1)
-            
-            lista[self.y][self.x] = 0
-            self.y = eval(str(self.y) + simbolo + '1')  
+            else:
+
+                if eval(str(self.y) + simbolo + '2') < 9:
+
+                    if lista[eval(str(self.y) + simbolo + '1')][self.x] in [1, 4, 5] and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
+
+
+                        lista[self.y][self.x] = 0
+                        self.y = eval(str(self.y) + simbolo + '2')
+
+             
     
     def SaltarHorizontal(self, simbolo, lista):
         global contMovUAIBOTINA
 
-        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+        if not eval(str(self.x) + simbolo + '1') == 9:
 
-            contMovUAIBOTINA += 1
-            pygame.mixer.Sound.play(sonidoSalto)
-            actualizarContadorDeMovimientos(1)
+            if lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
 
-            lista[self.y][self.x] = 0
-            self.x = eval(str(self.x) + simbolo + '2')
+                    
+                lista[self.y][self.x] = 0
+                self.x = eval(str(self.x) + simbolo + '1')
 
-        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
+            else:
 
-            contMovUAIBOTINA += 1
-            pygame.mixer.Sound.play(sonidoMover)
-            actualizarContadorDeMovimientos(1)
-                
-            lista[self.y][self.x] = 0
-            self.x = eval(str(self.x) + simbolo + '1')   
-                  
+                if eval(str(self.x) + simbolo + '2') < 9:
+
+                    if lista[self.y][eval(str(self.x) + simbolo + '1')] in [1, 4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+
+                        contMovUAIBOTINA += 1
+                        pygame.mixer.Sound.play(sonidoSalto)
+                        actualizarContadorDeMovimientos(1)
+
+                        lista[self.y][self.x] = 0
+                        self.x = eval(str(self.x) + simbolo + '2')
+
+    #------------>Personaje: 3. Empujar Bloques<-------------#
     def EmpujarVertical(self, simbolo, lista):
         global contMovUAIBOT
 
-        if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 2]:
+        if eval(str(self.y) + simbolo + '1') < 9:
+            if lista[eval(str(self.y) + simbolo + '1')][self.x] == 4 and lista[eval(str(self.y) + simbolo + '2')][self.x] in [0, 6]:
 
-            contMovUAIBOT += 1
-            pygame.mixer.Sound.play(sonidoMovVirus)
-            actualizarContadorDeMovimientos(1)
+                contMovUAIBOT += 1
+                pygame.mixer.Sound.play(sonidoMovVirus)
+                actualizarContadorDeMovimientos(1)
 
-            lista[self.y][self.x] = 0
-            self.y = eval(str(self.y) + simbolo + '1')
-            lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
-            
-        elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
+                lista[self.y][self.x] = 0
+                self.y = eval(str(self.y) + simbolo + '1')
+                lista[eval(str(self.y) + simbolo + '1')][self.x] = 4
+                
+            elif lista[eval(str(self.y) + simbolo + '1')][self.x] in [0, 6]:
 
-            contMovUAIBOT += 1
-            pygame.mixer.Sound.play(sonidoMover)
-            actualizarContadorDeMovimientos(1)
-            
-            lista[self.y][self.x] = 0
-            self.y = eval(str(self.y) + simbolo + '1')
+                lista[self.y][self.x] = 0
+                self.y = eval(str(self.y) + simbolo + '1')
         
     def EmpujarHorizontal(self, simbolo, lista):
         global contMovUAIBOT
 
-        if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
+        if eval(str(self.x) + simbolo + '1') < 9:
             
-            contMovUAIBOT += 1
-            actualizarContadorDeMovimientos(1)
-            pygame.mixer.Sound.play(sonidoMovVirus)
-
-            lista[self.y][self.x] = 0
-            lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
-            self.x = eval(str(self.x) + simbolo + '1')
-            
-        elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
-
-            contMovUAIBOT += 1
-            pygame.mixer.Sound.play(sonidoMover)
-            actualizarContadorDeMovimientos(1)
-
-            lista[self.y][self.x] = 0
-            self.x = eval(str(self.x) + simbolo + '1')
-
-    def mover(self, pared, virus, robot, bool = [], lista = []):
-        
-        if pygame.key.get_pressed()[pygame.K_w]:
-            
-            match robot:
-                    case "UAIBOT":
-                        self.EmpujarVertical('-', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarVertical('-', '+', lista)
-                    case "UAIBOTINA":
-                        self.SaltarVertical('-', lista)
-                    case "UAIBOTINO":
-                        self.SaltarVertical('-', lista)
+            if lista[self.y][eval(str(self.x) + simbolo + '1')] in [4, 5] and lista[self.y][eval(str(self.x) + simbolo + '2')] in [0, 6]:
                 
+                lista[self.y][self.x] = 0
+                lista[self.y][eval(str(self.x) + simbolo + '2')] = lista[self.y][eval(str(self.x) + simbolo + '1')] 
+                self.x = eval(str(self.x) + simbolo + '1')
+                
+            elif lista[self.y][eval(str(self.x) + simbolo + '1')] in [0, 6]:
+
+                lista[self.y][self.x] = 0
+                self.x = eval(str(self.x) + simbolo + '1')
+
+    def mover(self, robot, bool = [], lista = []):
+        
+        global zonaActual, zonaDeTransporte, zonaDeTransporte2, indexY, indexX, boolCambioSala
+
+        if pygame.key.get_pressed()[pygame.K_w]:
+
+            if 'arriba' in bool and self.y == 1:
+                lista[self.y][self.x] = 0
+                indexY -= 1
+                self.y = 8
+                boolCambioSala = True
+            else:
+                match robot:
+                        case "UAIBOT":
+                            self.EmpujarVertical('-', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarVertical('-', '+', lista)
+                        case "UAIBOTINA":
+                            self.SaltarVertical('-', lista)
+                        case "UAIBOTINO":
+                            self.SaltarVertical('-', lista)
 
         if pygame.key.get_pressed()[pygame.K_s]:
-            
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarVertical('+', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarVertical('+', '-', lista)
-                    case "UAIBOTINA":
-                        self.SaltarVertical('+', lista)
-                    case "UAIBOTINO":
-                        self.SaltarVertical('+', lista)
-            
+
+            if 'abajo' in bool and self.y == 8:
+                lista[self.y][self.x] = 0
+                indexY += 1
+                self.y = 1
+                boolCambioSala = True
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarVertical('+', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarVertical('+', '-', lista)
+                        case "UAIBOTINA":
+                            self.SaltarVertical('+', lista)
+                        case "UAIBOTINO":
+                            self.SaltarVertical('+', lista)
 
         if pygame.key.get_pressed()[pygame.K_d]:
-            
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarHorizontal('+', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarHorizontal('+', '-', lista)
-                    case "UAIBOTINA":
-                        self.SaltarHorizontal('+', lista)
-                    case "UAIBOTINO":
-                        self.SaltarHorizontal('+', lista)
+
+            if 'derecha' in bool and self.x == 8:
+                lista[self.y][self.x] = 0
+                indexX += 1
+                self.x = 1
+                boolCambioSala = True
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarHorizontal('+', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarHorizontal('+', '-', lista)
+                        case "UAIBOTINA":
+                            self.SaltarHorizontal('+', lista)
+                        case "UAIBOTINO":
+                            self.SaltarHorizontal('+', lista)
 
 
         if pygame.key.get_pressed()[pygame.K_a]:
 
-            match personajeActual:
-                    case "UAIBOT":
-                        self.EmpujarHorizontal('-', lista)
-                    case "UAIBOTA":
-                        self.ArrastrarHorizontal('-', '+', lista)
-                    case "UAIBOTINA":
-                        self.SaltarHorizontal('-', lista)
-                    case "UAIBOTINO":
-                        self.SaltarHorizontal('-', lista)
-
-        lista[4][2] = 6
-        lista[6][2] = 6
+            if 'izquierda' in bool and self.x == 1:
+                lista[self.y][self.x] = 0
+                indexX -= 1
+                self.x = 8
+                boolCambioSala = True
+            else:
+                match personajeActual:
+                        case "UAIBOT":
+                            self.EmpujarHorizontal('-', lista)
+                        case "UAIBOTA":
+                            self.ArrastrarHorizontal('-', '+', lista)
+                        case "UAIBOTINA":
+                            self.SaltarHorizontal('-', lista)
+                        case "UAIBOTINO":
+                            self.SaltarHorizontal('-', lista)
+            
+        actualizarContadorDeMovimientos(1)
+        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
+        self.rect.left = self.x * 64
+        self.rect.top = self.y * 64
+
+    def reiniciar(self):
+        
+        self.y = 5
+        self.x = 2
 
 
 class virus(pygame.sprite.Sprite):
@@ -457,14 +446,15 @@ class virus(pygame.sprite.Sprite):
             if movIzquierda:
                 self.rect.left -= 64
 
-        pantalla.blit(imgVirus, (self.rect.left, self.rect.top))
+        pygame.draw.rect(pantalla, 'white', self.rect) 
 
 class pared(pygame.sprite.Sprite):
 
     def __init__(self, posX, posY):
 
         # Aca se heredan las propiedades
-        pygame.sprite.Sprite.__init__(self) 
+        pygame.sprite.Sprite.__init__(self)
+
         self.posX = posX
         self.posY = posY
         self.surface = pygame.Surface((64, 64))
@@ -474,7 +464,51 @@ class pared(pygame.sprite.Sprite):
 
     def update(self):
 
-        pantalla.blit(imgPared, (self.rect.left, self.rect.top)) 
+        pygame.draw.rect(pantalla, 'white', self.rect, 2) 
+
+class mapa:
+
+    def __init__(self, totalSalas, totalCapaz, salas = []):
+        self.totalSalas = totalSalas # Cantidad de salas totales que se tienen que procesar (mayor cantidad a medida que se pasan niveles)
+        self.totalCapaz = totalCapaz
+        self.salas = salas
+        
+        self.cantCapas = 3 # Elige la cantidad de capas (Valor de Y en index de lista) Por ahora lo hago en un valor fijo
+
+    def agregar(self, sala, indexYmapa):
+        self.salas[indexYmapa].append(sala)
+    def definirForma(self):
+        self.salas = [[] for filas in range(self.totalSalas) for columnas in range(self.totalCapaz)]
+        
+
+    def SeleccionarSala(self, indexYmapa, indexXmapa):
+        return self.salas[indexYmapa][indexXmapa]
+    
+    def clearMapa(self):
+        self.salas = []
+
+    def dibujarMapa(self):
+
+        esquinaDerecha = pantalla.get_width() - cantPixelesPorLadoCasilla
+        esquinaArriba = 0 + cantPixelesPorLadoCasilla
+
+        pygame.draw.rect(pantalla, 'white', [esquinaDerecha - (self.totalCapaz * 64), esquinaDerecha, esquinaArriba, esquinaArriba + (self.totalCapaz * 64)], 2)
+
+class habitacion:
+
+    def __init__(self, posZonaSeguras = [[]], posBloques = [], salaActual = False, salidas = []):
+
+        self.posZonaSeguras = posZonaSeguras
+        self.posBloques = posBloques
+        self.salaActual = salaActual
+        self.salidas = salidas
+
+    def colocarZonaSegura(self):
+        for y in self.posZonaSeguras:
+            self.posBloques[y[0]][y[1]] = 6
+
+    def get_Salidas(self):
+        return self.salidas
 
 def dibujarReglas():
 
@@ -615,9 +649,7 @@ def dibujarPorcentajeDeMovimientos():
 
 def dibujarZonaDeTransporte(zona):
 
-    global zonaDeTransporte
     global avatarRect
-    
     # Los For arrancan a contar desde el 1 ya que despues se multiplican con los las coordenadas
     # Si arrancaran en 0, se dibujarian pegados a los bordes de la pantalla
 
@@ -629,9 +661,9 @@ def dibujarZonaDeTransporte(zona):
             if zona[y][x] in [1, 3, 4, 5, 6]:
 
                 totalImagenes = [0, imgPared, 0, imgAvatar, imgVirus, imgParedAlternativa, imgAreaProtegida]
-                pantalla.blit(totalImagenes[zonaDeTransporte[y][x]], (cantPixelesPorLadoCasilla*x,cantPixelesPorLadoCasilla*y))
+                pantalla.blit(totalImagenes[zona[y][x]], (cantPixelesPorLadoCasilla*x,cantPixelesPorLadoCasilla*y))
            
-
+ 
                 # El jugador se compone de dos partes:
                     # El sprite y la posicion en la que se dibuja
                     # El marco de la colision
@@ -640,20 +672,16 @@ def dibujarZonaDeTransporte(zona):
     pygame.draw.rect(pantalla, colorBlanco, [cantPixelesPorLadoCasilla,cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla,cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla],1)       
     
 
-def dibujarTodo():
+def dibujarTodo(zona):
     dibujarFondo()
-    dibujarZonaDeTransporte(zonaDeTransporte)
+    dibujarZonaDeTransporte(zona)
     dibujarCartelIndicadorRonda()
     dibujarReglas()
     dibujarRanking()
 
-
-#dibujarTodo()
-
-#####################################################################################################
-#                                           Clases                                                  #
-
-class Sinusoidal:
+###################################### Clases #######################################################
+# Empiezo a programar la clase del virus sinosuidal
+class Sinusoidal: 
 
     def __init__(self, sprite):
 
@@ -839,13 +867,136 @@ class Input(pygame.sprite.Sprite):
         self.mostrarTexto()
 
 ################################################ Fin clases #############################################
+
+# Aca defino el objeto de personaje, pero lo ideal seria que si agregamos mas clases las definamos en un espacio apropiado
+# Añadir clase de paredes para collide y que no se empujen dos cosas a la vez
+
+crearMapa = mapa(2, 2)
+crearMapa.definirForma()
+
+# ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
+
+zonaDeTransporte1 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 0, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 6, 0, 5, 0, 0, 0, 0],
+                    [1, 1, 3, 0, 4, 1, 0, 0, 1],
+                    [1, 1, 6, 0, 0, 4, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+zonaDeTransporte1[posYjugador][posXjugador] = 3
+
+zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 4, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 1, 1, 0, 1, 1, 1, 1]]
+
+zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                    [1, 1, 0, 0, 0, 1, 0, 4, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
+sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
+sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
+
+crearMapa.agregar(sala1, 1)
+crearMapa.agregar(sala2, 0)
+crearMapa.agregar(sala3, 1)
+
+
+for indexYmap in crearMapa.salas:
+    for habitacionActual in indexYmap:
+        if habitacionActual.salaActual:
+            break
+
+for numY, y in enumerate(habitacionActual.posBloques):
+    for numX, x in enumerate(y):
+        if x == 3:
+            personaje = jugador(64 * numX, 64 * numY, 64, 64)
+
+def definirMapa():
+
+    # ceacion del "tablero", se hizo un array que a su vez contiene 9 arrays, (solo se usan 8, evitando el primero) los cuales, se inician llenandolos de espacios vacios, despues se cambian esos 0s por valores de palabras
+
+    zonaDeTransporte1 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 0, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 6, 0, 5, 0, 0, 0, 0],
+                        [1, 1, 3, 0, 4, 1, 0, 0, 1],
+                        [1, 1, 6, 0, 0, 4, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+    zonaDeTransporte1[posYjugador][posXjugador] = 3
+
+    zonaDeTransporte2 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 4, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 0, 1, 1, 1, 1]]
+
+    zonaDeTransporte3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 0, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 0, 1],
+                        [1, 1, 0, 0, 0, 1, 0, 4, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
+    global indexX, indexY
+
+    indexX = 0
+    indexY = 1
+
+    crearMapa.clearMapa()
+    crearMapa.definirForma()
+
+    sala1 = habitacion([[4, 2], [6, 2]], zonaDeTransporte1, True, ['arriba', 'derecha'])
+    sala2 = habitacion([[2, 5]], zonaDeTransporte2, False, ['abajo'])
+    sala3 = habitacion([[4, 7]], zonaDeTransporte3, False, ['izquierda'])
+
+    crearMapa.agregar(sala1, 1)
+    crearMapa.agregar(sala2, 0)
+    crearMapa.agregar(sala3, 1)
+    
+    personaje.reiniciar()
+
+    for indexYmap in crearMapa.salas:
+        for habitacionActual in indexYmap:
+            if habitacionActual.salaActual:
+                return habitacionActual
+
+
 def resetearJuego():
+
     global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
     global jugando, imgFondo
 
     jugando = False
     inputMov.redefinir()
+
+    definirMapa()
 
     botonInicio.presionado = False
 
@@ -861,7 +1012,6 @@ def resetearJuego():
     virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
     virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
-    zonaDeTransporte=crearZonaDeTransporte()
     cantidadDeMovimientosActual=0
 
     cantidadDeMovimientosRestantes=cantidadDeMovimientosDeterminada
@@ -870,7 +1020,6 @@ def resetearJuego():
     personaje.y = 5
 
     ticksAlComenzar=pygame.time.get_ticks()
-    dibujarTodo()
 
 def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file = open("ranking.txt", "a")
@@ -880,34 +1029,31 @@ def escribirEnArchivo(nombre, cantMovimientosUtilizados):
     file.write('\n')
     file.close()
 
-def escribirMovimientosEnArchivo():
+def escribirMovimientosEnArchivo(zona):
+
     global cantidadDeMovimientosActual, nivelCompletado, nombreJugador
+    escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
+    resetearJuego()
 
     if (nivelCompletado==True):
         escribirEnArchivo(nombreJugador, cantidadDeMovimientosActual)
         resetearJuego()
 
 
-def estaSolucionado():
+def estaSolucionado(zona):
 
     global nivelCompletado
-    global zonaDeTransporte 
+
+    zonaDeTransporte = zona
 
     cantVirusSobreAreasProtegidas=0
 
-    nivelCompletado = True
-
-    for y in zonaDeTransporte:
-        if 4 in y:
-            cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
-
     if cantVirusSobreAreasProtegidas > 0:
         nivelCompletado = False
-    else:
-        pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/paseNivel.wav"))
 
-    escribirMovimientosEnArchivo()
-    dibujarPorcentajeDeMovimientos()
+
+    if(nivelCompletado == True):
+        escribirMovimientosEnArchivo(zona)
 
 def EventoInicio():
     global cantidadDeMovimientosRestantes, cantidadDeMovimientosDeterminada
@@ -981,7 +1127,7 @@ txtInputMov = Textos()
 virusGrupo = pygame.sprite.Group()
 paredGrupo = pygame.sprite.Group()
 
-for numY, y in enumerate(zonaDeTransporte):
+for numY, y in enumerate(habitacionActual.posBloques):
     for numX, x in enumerate(y): 
 
         if y[numX] == 3:
@@ -993,14 +1139,12 @@ for numY, y in enumerate(zonaDeTransporte):
 
 
 ######################################################################################
+definirMapa()
 
 while not salirJuego:
 
     segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
     segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
-
-    if (segundosRestantes<=0):
-       resetearJuego()
 
     dibujarFondo()
     virusSinosuidal.establecerMov()
@@ -1078,6 +1222,7 @@ while not salirJuego:
         if event.type == pygame.KEYDOWN and jugando == True:
 
             if event.key == pygame.K_r: 
+                boolCambioSala = True
                 resetearJuego()
 
             elif event.key == pygame.K_e:
@@ -1107,8 +1252,7 @@ while not salirJuego:
                             imgAvatar=pygame.transform.scale(pygame.image.load("assets/img/legacy/robot1.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
                         personajeActual="UAIBOT"
 
-            personaje.mover(pared = paredGrupo, virus = virusGrupo, robot = personajeActual, lista = zonaDeTransporte)
-                                 
+            personaje.mover(bool = habitacionActual.salidas, robot = personajeActual, lista = habitacionActual.posBloques) 
               
         virusQueSeMueveRect.left = virusQueSeMueveRect.left - 1
         
@@ -1118,8 +1262,9 @@ while not salirJuego:
         virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
         virusSinusoidalRect.top=y
 
-        estaSolucionado()
-        estaSinMovimientos()
+        if(jugando == True):
+            estaSolucionado(habitacionActual.posBloques)
+            estaSinMovimientos()
 
     #=================================================================================#
     #                                Codigo propio                                    #
@@ -1135,14 +1280,58 @@ while not salirJuego:
         dibujarReglas()
         
         dibujarContadorMov()
-        dibujarZonaDeTransporte(zonaDeTransporte)
+        dibujarZonaDeTransporte(habitacionActual.posBloques)
         dibujarPorcentajeDeMovimientos()
         dibujarRanking()
+        #####################################################################################################  
+
+        habitacionActual.colocarZonaSegura()
+        habitacionActual.posBloques[personaje.y][personaje.x] = 3
+        dibujarZonaDeTransporte(habitacionActual.posBloques)
         
+        dt = reloj.tick() / 1000
+
+        # Bool que busca si quedaron virus en el mapa, por defecto esta en True (Diciendo que no hay)
+        boolNoHayVirus = True
+
+        # Son muchos for... Despues veo como reducirlos, pasa que son muchos arrays.
+        # Busca en el mapa, y en este, cada habitacion que tiene para buscar virus.
+        # Si encuentra alguno: La bool anterior se corrije, impidiendo que se gane el juego
+        for capaz in crearMapa.salas:
+            for habitaciones in capaz:
+                for listaY in habitaciones.posBloques:
+                    if 4 in listaY: # Se encontro un virus en le mapa, lo que quiere decir que el juego no termino
+                        boolNoHayVirus = False
+
+        # Si no se encontro un virus y la bool se mantuvo en True: El jugador gano.
+        if boolNoHayVirus == True:
+            boolCambioSala = True
+            definirMapa()
+            estaSolucionado(habitacionActual.posBloques)
+
+        if boolCambioSala == True:
+
+            for numy, y in enumerate(habitacionActual.posBloques):
+                for numx, x in enumerate(y):
+                    if habitacionActual.posBloques[numy][numx] == 3:
+                        habitacionActual.posBloques[numy][numx] = 1
+
+            habitacionActual.salaActual = False
+            habitacionActual = crearMapa.SeleccionarSala(indexY, indexX)
+            habitacionActual.salaActual = True
+
+            boolCambioSala = False
+            
+        if (virusQueSeMueveRect.left < cantPixelesPorLadoCasilla):
+            virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
+            
         virusSinosuidal.movVirus()    
         virusSinosuidal.dibujarVirus(spawnSinosuidal)
 
-        pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
+        pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top)) 
+
+
+    ###########################################################################################
 
     #Dibuja boton "Iniciar Juego"
     if(botonInicio.presionado == False and inputNombre.text != "" and inputMov.text != ""):
@@ -1167,9 +1356,11 @@ while not salirJuego:
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
 
-    if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect) and jugando == True:
+    if virusQueSeMueveRect.colliderect(personaje.rect) or virusSinusoidalRect.colliderect(personaje.rect) and jugando == True:
+        boolCambioSala = True
         resetearJuego()
-            
+
+
     #                              Fin codigo propio                                  #
     #=================================================================================#
 
@@ -1186,9 +1377,8 @@ while not salirJuego:
     virusGrupo.update(personaje.rect)
     paredGrupo.update()
 
-    pygame.display.update()
-        
-    if (virusQueSeMueveRect.left < cantPixelesPorLadoCasilla):
-        virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
+    #=================================================================================#    #=================================================================================#
+
+    pygame.display.flip()
          
 pygame.quit()
