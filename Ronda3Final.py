@@ -407,8 +407,6 @@ class jugador(pygame.sprite.Sprite):
         actualizarContadorDeMovimientos(1)
         pygame.mixer.Channel(1).play(pygame.mixer.Sound("assets/sounds/mover.wav"))
         lista[self.y][self.x] = 3
-        self.rect.left = self.x * 64
-        self.rect.top = self.y * 64
 
     def reiniciar(self):
         
@@ -662,7 +660,10 @@ def dibujarZonaDeTransporte(zona):
 
                 totalImagenes = [0, imgPared, 0, imgAvatar, imgVirus, imgParedAlternativa, imgAreaProtegida]
                 pantalla.blit(totalImagenes[zona[y][x]], (cantPixelesPorLadoCasilla*x,cantPixelesPorLadoCasilla*y))
-           
+
+            if zona[y][x] == 3:
+                personaje.rect.left = personaje.x * 64
+                personaje.rect.top = personaje.y * 64           
  
                 # El jugador se compone de dos partes:
                     # El sprite y la posicion en la que se dibuja
@@ -681,18 +682,18 @@ def dibujarTodo(zona):
 
 ###################################### Clases #######################################################
 # Empiezo a programar la clase del virus sinosuidal
-class Sinusoidal: 
+class Sinusoidal(pygame.sprite.Sprite):
 
     def __init__(self, sprite):
-
+        pygame.sprite.Sprite.__init__(self)
         # Sprite aleatorio
         self.sprite = sprite
-        self.marca = pygame.Rect(0, 0, 64,64)
+        self.rect = pygame.Rect(0, 0, 64,64)
         
         # Variables para las funciones de movimiento
         self.virusBool = True
-        self.marca.top = 0
-        self.marca.left = 0
+        self.rect.top = 0
+        self.rect.left = 0
         self.orientacionX = ''
         self.orientacionY = ''
         self.instancia = 0
@@ -711,11 +712,11 @@ class Sinusoidal:
             self.curvaAncho = random.choice([100, 100, 150])
 
             # Decidir puntos de inicio, (posiciones posibles entre la altura de la grilla)
-            self.marca.top = random.choice([64, 128, 192, 256, 320, 384, 448, 512])
-            self.marca.left = random.choice([64, 512])
-            if self.marca.left == 64:
+            self.rect.top = random.choice([64, 128, 192, 256, 320, 384, 448, 512])
+            self.rect.left = random.choice([64, 512])
+            if self.rect.left == 64:
                 self.orientacionX = '+'
-            if self.marca.left == 512:
+            if self.rect.left == 512:
                 self.orientacionX = '-'
 
             self.virusBool = False
@@ -726,7 +727,7 @@ class Sinusoidal:
 
             # Usa la funcion 'eval()' para calcular con texto 
             # el dt son los fps, hace un poquito mas fluido el movimiento del virus. Con las teclas no se nota mucho pero es mas claro con el mouse
-            self.marca.left = eval(str(self.marca.left) + self.orientacionX + str(self.velocidadX * dt))
+            self.rect.left = eval(str(self.rect.left) + self.orientacionX + str(self.velocidadX * dt))
 
             # Explicacion del calculo.
                 # 64 +: Se le suma 64 ya que no esta adherido a la parte superior de la pantalla, inicia unos 64 pixeles mas abajo, en la grilla
@@ -736,17 +737,17 @@ class Sinusoidal:
                         # self.marca.left: para que el virus se mueva a la par del valor X
                         # se divide con self.curvaAncho para que tarde un poco en cambiar la orientacion vertical
                 # * 224: La altura maxima a la que sube y baja el virus, (es la mitad de pixeles que toma la grilla)
-            self.marca.top = 64 + (1 + math.sin(self.marca.left/self.curvaAncho)) * 224
+            self.rect.top = 64 + (1 + math.sin(self.rect.left/self.curvaAncho)) * 224
 
-        if self.marca.left < 64 or self.marca.left + 64 > 576:
+        if self.rect.left < 64 or self.rect.left + 64 > 576:
             self.virusBool = True
 
-        if self.marca.top < 64:
-            self.marca.top = 64
+        if self.rect.top < 64:
+            self.rect.top = 64
             
 
-        elif self.marca.top > 512:
-            self.marca.top = 512
+        elif self.rect.top > 512:
+            self.rect.top = 512
 
     def dibujarVirus(self, tiempo):
         # pygame.draw.rect(pantalla, 'red', [self.marca.left, self.marca.top, 64, 64])
@@ -755,7 +756,7 @@ class Sinusoidal:
         # Mas tarde agregar Collider
         if self.spawnBool or tiempo >= 250:
             self.spawnBool = True
-            pantalla.blit(pygame.transform.scale(pygame.image.load(self.sprite), (64, 64)), (self.marca.left, self.marca.top))
+            pantalla.blit(pygame.transform.scale(pygame.image.load(self.sprite), (64, 64)), (self.rect.left, self.rect.top))
 
 # El atributo de sprite es un string, pero en realidad la clase
 # todavia no usa ningun parametro mas que self.
@@ -1206,7 +1207,7 @@ while not salirJuego:
         #Deteccion de click sobre virus
         if event.type == pygame.MOUSEBUTTONDOWN:
 
-            if posXmouse >= virusSinosuidal.marca.left and posXmouse <= virusSinosuidal.marca.right and posYmouse >= virusSinosuidal.marca.top and posYmouse <= virusSinosuidal.marca.bottom:
+            if posXmouse >= virusSinosuidal.rect.left and posXmouse <= virusSinosuidal.rect.right and posYmouse >= virusSinosuidal.rect.top and posYmouse <= virusSinosuidal.rect.bottom:
                 virusSinosuidal.spawnBool = False
                 virusSinosuidal.virusBool = True
                 virusDestruido = True
@@ -1327,6 +1328,10 @@ while not salirJuego:
             
         virusSinosuidal.movVirus()    
         virusSinosuidal.dibujarVirus(spawnSinosuidal)
+
+        if virusSinosuidal.rect.colliderect(personaje.rect):
+            boolCambioSala = True
+            resetearJuego()
 
         pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top)) 
 
