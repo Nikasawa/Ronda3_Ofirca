@@ -83,7 +83,6 @@ avatarRect=imgAvatar.get_rect()
 imgMira=pygame.transform.scale(pygame.image.load("assets/img/classic/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
 imgPared=pygame.transform.scale(pygame.image.load("assets/img/classic/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
 imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/classic/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
-imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/classic/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
 
 imgAreaProtegida=pygame.transform.scale(pygame.image.load("assets/img/classic/areaprotegida.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))
 listaVirus  = ["assets/img/classic/virus1.png","assets/img/classic/virus2.png","assets/img/classic/virus3.png","assets/img/classic/virus4.png","assets/img/classic/virus5.png","assets/img/classic/virus6.png"]
@@ -899,7 +898,7 @@ def estaSolucionado():
     nivelCompletado = True
 
     for y in zonaDeTransporte:
-        if 6 in y:
+        if 4 in y:
             cantVirusSobreAreasProtegidas=cantVirusSobreAreasProtegidas+1       
 
     if cantVirusSobreAreasProtegidas > 0:
@@ -913,7 +912,7 @@ def estaSolucionado():
 def EventoInicio():
     global cantidadDeMovimientosRestantes, cantidadDeMovimientosDeterminada
     global nombreJugador, jugando, personajeActual
-    global imgAreaProtegida, imgAvatar, imgPared, imgVirus, imgVirusQueSeMueve, imgFondo, imgMira
+    global imgAreaProtegida, imgAvatar, imgPared, imgVirus, imgVirusQueSeMueve, imgFondo, imgMira, imgParedAlternativa
     pygame.mixer.Sound.play(sonidoBoton)
 
     nombreJugador=str(inputNombre.text)
@@ -936,6 +935,8 @@ def EventoInicio():
         imgPared=pygame.transform.scale(pygame.image.load("assets/img/classic/pared.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla)) 
         imgFondo = pygame.image.load("assets/img/classic/fondo.png")
         imgMira=pygame.transform.scale(pygame.image.load("assets/img/classic/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+        imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/classic/paredAlternativa.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+
             
     if(legacy == True):
         listaVirus = listaVirus2
@@ -944,6 +945,8 @@ def EventoInicio():
         imgPared=pygame.transform.scale(pygame.image.load("assets/img/legacy/Block1.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
         imgFondo = pygame.image.load("assets/img/legacy/fondo.png")
         imgMira=pygame.transform.scale(pygame.image.load("assets/img/legacy/mira.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+        imgParedAlternativa=pygame.transform.scale(pygame.image.load("assets/img/legacy/Block2.png"), (cantPixelesPorLadoCasilla, cantPixelesPorLadoCasilla))  
+
 
     personajeActual="UAIBOTA"
 
@@ -1121,6 +1124,9 @@ while not salirJuego:
     #=================================================================================#
     #                                Codigo propio                                    #
                      
+    if(nivelCompletado == True):
+        resetearJuego()
+
     if(jugando == True):
         pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
         pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top)) 
