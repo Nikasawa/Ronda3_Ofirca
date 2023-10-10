@@ -650,8 +650,9 @@ def dibujarTodo():
 
 #dibujarTodo()
 
-###################################### Clases #######################################################
-# Empiezo a programar la clase del virus sinosuidal
+#####################################################################################################
+#                                           Clases                                                  #
+
 class Sinusoidal:
 
     def __init__(self, sprite):
@@ -844,7 +845,6 @@ def resetearJuego():
     global jugando, imgFondo
 
     jugando = False
-    inputNombre.redefinir()
     inputMov.redefinir()
 
     botonInicio.presionado = False
@@ -1128,9 +1128,6 @@ while not salirJuego:
         resetearJuego()
 
     if(jugando == True):
-        pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
-        pantalla.blit(imgVirusSinusoidal, (virusSinusoidalRect.left, virusSinusoidalRect.top)) 
-    
         actualizarTiempoDeJuegoActual() 
         actualizarTiempoRestante()
 
@@ -1144,6 +1141,8 @@ while not salirJuego:
         
         virusSinosuidal.movVirus()    
         virusSinosuidal.dibujarVirus(spawnSinosuidal)
+
+        pantalla.blit(imgVirusQueSeMueve, (virusQueSeMueveRect.left, virusQueSeMueveRect.top))   
 
     #Dibuja boton "Iniciar Juego"
     if(botonInicio.presionado == False and inputNombre.text != "" and inputMov.text != ""):
@@ -1167,6 +1166,9 @@ while not salirJuego:
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"blue","black")
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
+
+    if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect) and jugando == True:
+        resetearJuego()
             
     #                              Fin codigo propio                                  #
     #=================================================================================#
@@ -1185,9 +1187,6 @@ while not salirJuego:
     paredGrupo.update()
 
     pygame.display.update()
-
-    if virusQueSeMueveRect.colliderect(avatarRect) or virusSinusoidalRect.colliderect(avatarRect):
-        resetearJuego()
         
     if (virusQueSeMueveRect.left < cantPixelesPorLadoCasilla):
         virusQueSeMueveRect.left = cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
