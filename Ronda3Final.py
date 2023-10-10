@@ -116,10 +116,6 @@ virusQueSeMueveRect = imgVirusQueSeMueve.get_rect()
 virusQueSeMueveRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
 virusQueSeMueveRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
-virusSinusoidalRect = imgVirusSinusoidal.get_rect()
-virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
-virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
-
 #nombreJugador=input("Ingresa tu nombre: ")
 #cantidadDeMovimientosDeterminada=int(input("Ingresa la cantidad máxima de movimientos: "))
 
@@ -338,7 +334,7 @@ class jugador(pygame.sprite.Sprite):
                 lista[self.y][self.x] = 0
                 self.x = eval(str(self.x) + simbolo + '1')
             
-            contMovUAIBOTA += 1
+            contMovUAIBOT += 1
             actualizarContadorDeMovimientos(1)
 
     def mover(self, robot, bool = [], lista = []):
@@ -1003,14 +999,16 @@ def definirMapa():
 
 def resetearJuego():
 
-    global zonaDeTransporte, cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
+    global cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
-    global jugando, imgFondo
+    global jugando, imgFondo, nivelCompletado
 
     jugando = False
     inputMov.redefinir()
 
     definirMapa()
+
+    nivelCompletado = False
 
     botonInicio.presionado = False
 
@@ -1022,9 +1020,6 @@ def resetearJuego():
 
     virusQueSeMueveRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
     virusQueSeMueveRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
-           
-    virusSinusoidalRect.left =cantPixelesPorLadoCasilla * cantidadDeCasillasPorLado
-    virusSinusoidalRect.top = cantPixelesPorLadoCasilla * (cantidadDeCasillasPorLado - 1)
 
     cantidadDeMovimientosActual=0
 
@@ -1273,9 +1268,6 @@ while not salirJuego:
         x = pygame.time.get_ticks() / 40  % 400
         y = int(math.sin(x/25.0) * 50 + 160)
 
-        virusSinusoidalRect.left=x+cantPixelesPorLadoCasilla
-        virusSinusoidalRect.top=y
-
         if(jugando == True):
             estaSolucionado(habitacionActual.posBloques)
             estaSinMovimientos()
@@ -1319,6 +1311,7 @@ while not salirJuego:
 
         # Si no se encontro un virus y la bool se mantuvo en True: El jugador gano.
         if boolNoHayVirus == True:
+            nivelCompletado = True
             boolCambioSala = True
             definirMapa()
             estaSolucionado(habitacionActual.posBloques)
@@ -1374,7 +1367,7 @@ while not salirJuego:
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
 
-    if virusQueSeMueveRect.colliderect(personaje.rect) or virusSinusoidalRect.colliderect(personaje.rect) and jugando == True:
+    if virusQueSeMueveRect.colliderect(personaje.rect) and jugando == True:
         boolCambioSala = True
         resetearJuego()
 
