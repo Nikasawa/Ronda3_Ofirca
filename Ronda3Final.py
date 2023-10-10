@@ -43,6 +43,7 @@ posXjugador = 2
 posYjugador = 5
 
 legacy = False
+contadorInicio = False
 
 # -----> Declaraciones de botones <-----#
 
@@ -93,7 +94,6 @@ contMovUAIBOTA=0
 contMovUAIBOTINA=0
 
 dt = 0
-ticksAlComenzar=pygame.time.get_ticks()
 personajeActual='UAIBOT'
 tiempoParaSolucionarElNivel=55
 cantidadDeMovimientosActual=0
@@ -1021,9 +1021,10 @@ def resetearJuego():
 
     global cantidadDeMovimientosRestantes, cantidadDeMovimientosActual, ticksAlComenzar
     global contMovUAIBOT, contMovUAIBOTA, contMovUAIBOTINA
-    global jugando, imgFondo, nivelCompletado
+    global jugando, imgFondo, nivelCompletado, contadorInicio
 
     jugando = False
+    contadorInicio = False
     inputMov.redefinir()
 
     definirMapa()
@@ -1299,6 +1300,11 @@ while not salirJuego:
         resetearJuego()
 
     if(jugando == True):
+
+        if(contadorInicio == False):
+            ticksAlComenzar=pygame.time.get_ticks()
+            contadorInicio = True
+
         segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
         segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
 
