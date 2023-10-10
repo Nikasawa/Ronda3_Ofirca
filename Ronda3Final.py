@@ -483,8 +483,8 @@ def dibujarReglas():
     
     ancho=650
     alto=25
-    x=64
-    y=3
+    x=2
+    y=10
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
     pantalla.blit(textoReglas,(x+5,y,ancho,alto))
 
@@ -533,7 +533,7 @@ def actualizarTiempoDeJuegoActual():
 def dibujarCartelIndicadorRonda():
     textoFelicitacion = tipografiaGrande.render('Ronda final', False, colorBlanco)
     ancho=160
-    alto=50
+    alto=35
     x=350+(cantidadDeCasillasPorLado*cantPixelesPorLadoCasilla)
     y=5
     pygame.draw.rect(pantalla,colorBordeaux,(x,y,ancho,alto))
