@@ -1069,12 +1069,6 @@ def estaSolucionado(zona):
 
     zonaDeTransporte = zona
 
-    cantVirusSobreAreasProtegidas=0
-
-    if cantVirusSobreAreasProtegidas > 0:
-        nivelCompletado = False
-
-
     if(nivelCompletado == True):
         escribirMovimientosEnArchivo(zona)
 
@@ -1335,6 +1329,7 @@ while not salirJuego:
             boolCambioSala = True
             definirMapa()
             estaSolucionado(habitacionActual.posBloques)
+
 
         if boolCambioSala == True:
 
