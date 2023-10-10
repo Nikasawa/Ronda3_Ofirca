@@ -29,6 +29,7 @@ global sala1
 global sala2
 global sala3
 global tiempo_inicial
+global segundosRestantes
 reloj = pygame.time.Clock()
 movArriba, movAbajo, movDerecha, movIzquierda = False, False, False, False
 jugando = False
@@ -1170,9 +1171,6 @@ clip.preview()
 
 while not salirJuego:
 
-    segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
-    segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
-
     dibujarFondo()
     virusSinosuidal.establecerMov()
 
@@ -1303,6 +1301,9 @@ while not salirJuego:
         resetearJuego()
 
     if(jugando == True):
+        segundosTranscurridos=(pygame.time.get_ticks()-ticksAlComenzar)/1000
+        segundosRestantes=tiempoParaSolucionarElNivel-round((pygame.time.get_ticks()-ticksAlComenzar)/1000)
+
         actualizarTiempoDeJuegoActual() 
         actualizarTiempoRestante()
 
@@ -1313,6 +1314,11 @@ while not salirJuego:
         dibujarZonaDeTransporte(habitacionActual.posBloques)
         dibujarPorcentajeDeMovimientos()
         dibujarRanking()
+
+        if virusQueSeMueveRect.colliderect(personaje.rect) and jugando == True or segundosRestantes <= 0:
+            boolCambioSala = True
+            resetearJuego()
+            
         #####################################################################################################  
 
         habitacionActual.colocarZonaSegura()
@@ -1394,10 +1400,6 @@ while not salirJuego:
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"blue","black")
         if(legacy == True):
             botonLegacy.CambiarColorBoton(pygame.mouse.get_pos(),"yellow","white")
-
-    if virusQueSeMueveRect.colliderect(personaje.rect) and jugando == True:
-        boolCambioSala = True
-        resetearJuego()
 
 
     #                              Fin codigo propio                                  #
